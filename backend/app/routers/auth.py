@@ -14,13 +14,12 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == user_data.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-
     user = User(
         email=user_data.email,
         full_name=user_data.full_name,
         hashed_password=hash_password(user_data.password),
         role=user_data.role
-    )
+)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -34,7 +33,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
-
     token = create_access_token(data={"sub": user.email, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
 

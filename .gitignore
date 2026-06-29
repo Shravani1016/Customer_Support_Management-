@@ -1,22 +1,24 @@
-# Node
-node_modules/
-
-# Next.js
-.next/
-out/
-
-# Python
+# ======================
+# BACKEND
+# ======================
 venv/
+venv_windows/
 __pycache__/
 *.pyc
-
-# Environment
 .env
-.env.local
 
-# VS Code
+# ======================
+# FRONTEND
+# ======================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env*
+frontend/package-lock.json
+
+# ======================
+# IDE / OS
+# ======================
 .vscode/
-
-# OS files
+.idea/
 .DS_Store
-Thumbs.db
