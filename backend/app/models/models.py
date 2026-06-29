@@ -1,3 +1,4 @@
+from app.models.mixins import TimestampMixin, SoftDeleteMixin
 from sqlalchemy import (
     Column, Integer, String, Enum, ForeignKey,
     DateTime, Float, Text, Boolean
@@ -41,7 +42,7 @@ class ActivityTypeEnum(str, enum.Enum):
 
 
 # ─── Users ───────────────────────────────────────────
-class User(Base):
+class User(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -59,7 +60,7 @@ class User(Base):
 
 
 # ─── Companies ───────────────────────────────────────
-class Company(Base):
+class Company(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "companies"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -74,7 +75,7 @@ class Company(Base):
 
 
 # ─── Contacts ────────────────────────────────────────
-class Contact(Base):
+class Contact(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "contacts"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -90,7 +91,7 @@ class Contact(Base):
 
 
 # ─── Leads ───────────────────────────────────────────
-class Lead(Base):
+class Lead(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "leads"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -106,7 +107,7 @@ class Lead(Base):
 
 
 # ─── Deals ───────────────────────────────────────────
-class Deal(Base):
+class Deal(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "deals"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -123,7 +124,7 @@ class Deal(Base):
 
 
 # ─── Tasks ───────────────────────────────────────────
-class Task(Base):
+class Task(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -144,7 +145,7 @@ class Task(Base):
 
 
 # ─── Activities / Notes ──────────────────────────────
-class Activity(Base):
+class Activity(Base, SoftDeleteMixin):
     __tablename__ = "activities"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -10,7 +10,15 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from app.database import Base  # ← changed from app.core.database
 from app.models.models import *
 
+# ─── ADD THESE 2 LINES — load .env so we can read DATABASE_URL ───
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+
 config = context.config
+
+# ─── ADD THIS LINE — override alembic.ini's broken URL with the real one from .env ───
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+
 fileConfig(config.config_file_name)
 target_metadata = Base.metadata  # ← change this line
 
