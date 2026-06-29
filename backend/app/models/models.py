@@ -53,10 +53,10 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    leads = relationship("Lead", back_populates="owner")
-    deals = relationship("Deal", back_populates="owner")
-    tasks = relationship("Task", back_populates="assigned_to")
-    activities = relationship("Activity", back_populates="created_by")
+    leads = relationship("Lead", back_populates="owner", foreign_keys="Lead.owner_id")
+    deals = relationship("Deal", back_populates="owner", foreign_keys="Deal.owner_id")
+    tasks = relationship("Task", back_populates="assigned_to", foreign_keys="Task.assigned_to_id")
+    activities = relationship("Activity", back_populates="created_by", foreign_keys="Activity.created_by_id")
 
 
 # ─── Companies ───────────────────────────────────────
@@ -103,7 +103,7 @@ class Lead(Base, TimestampMixin, SoftDeleteMixin):
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    owner = relationship("User", back_populates="leads")
+    owner = relationship("User", back_populates="leads", foreign_keys="Lead.owner_id")
 
 
 # ─── Deals ───────────────────────────────────────────
@@ -120,7 +120,7 @@ class Deal(Base, TimestampMixin, SoftDeleteMixin):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     contact = relationship("Contact", back_populates="deals")
-    owner = relationship("User", back_populates="deals")
+    owner = relationship("User", back_populates="deals", foreign_keys="Deal.owner_id")
 
 
 # ─── Tasks ───────────────────────────────────────────
@@ -141,7 +141,7 @@ class Task(Base, TimestampMixin, SoftDeleteMixin):
     deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    assigned_to = relationship("User", back_populates="tasks")
+    assigned_to = relationship("User", back_populates="tasks", foreign_keys="Task.assigned_to_id")
 
 
 # ─── Activities / Notes ──────────────────────────────
@@ -159,4 +159,4 @@ class Activity(Base, SoftDeleteMixin):
     deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    created_by = relationship("User", back_populates="activities")
+    created_by = relationship("User", back_populates="activities", foreign_keys="Activity.created_by_id")
