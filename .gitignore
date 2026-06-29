@@ -1,15 +1,24 @@
-# virtual environments
-backend/venv/
-backend/venv_windows/
+# ======================
+# BACKEND
+# ======================
 venv/
-
-# Python cache
+venv_windows/
 __pycache__/
 *.pyc
-
-# environment variables
 .env
 
-# IDE files
+# ======================
+# FRONTEND
+# ======================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env*
+frontend/package-lock.json
+
+# ======================
+# IDE / OS
+# ======================
 .vscode/
 .idea/
+.DS_Store
