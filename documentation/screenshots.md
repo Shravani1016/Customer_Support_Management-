@@ -1,124 +1,179 @@
-# CRM Screenshots
+# Screenshots
 
 ## Overview
 
-This document contains the visual representation of the Customer Relationship Management (CRM) system.
-
-**Note:** The current images are **UI mockups** created during the design phase to illustrate the planned user interface. These will be replaced with actual screenshots once the application is fully developed and deployed.
+This document will contain screenshots of the Customer Relationship Management (CRM) application after the implementation of each module. The screenshots will demonstrate the user interface, workflow, and major functionalities of the system.
 
 ---
 
-# 1. Login Page
+# Planned Screenshots
 
-**Description**
-
-The Login page allows users to securely access the CRM system using their credentials. Authentication is handled using JWT Access Tokens and Refresh Tokens.
-
-**Status:** UI Mockup (To be replaced with actual implementation)
+The following screenshots will be added as development progresses.
 
 ---
 
-# 2. Dashboard
+## 1. Login Page
 
-**Description**
+Description:
 
-The Dashboard provides an overview of the CRM system, including:
+- User Login Interface
+- Email and Password Fields
+- Login Validation
+- Forgot Password Link
 
+Status: Pending
+
+---
+
+## 2. Dashboard
+
+Description:
+
+- Dashboard Overview
 - Total Companies
 - Total Contacts
 - Active Leads
-- Deals Pipeline
+- Deal Pipeline
 - Pending Tasks
-- Upcoming Follow-ups
-- Recent Activities
 - Dashboard Analytics
 
-**Status:** UI Mockup (To be replaced with actual implementation)
+Status: Pending
 
 ---
 
-# 3. Companies Module
+## 3. Company Management
 
-**Description**
+Description:
 
-The Companies module enables users to manage customer organizations by adding, editing, deleting, searching, and viewing company details.
+- Company List
+- Add Company Form
+- Edit Company
+- Company Details
 
-**Status:** UI Mockup (To be replaced with actual implementation)
-
----
-
-# 4. Contacts Module
-
-**Description**
-
-The Contacts module stores customer contact information and links contacts with their respective companies.
-
-**Status:** UI Mockup (To be replaced with actual implementation)
+Status: Pending
 
 ---
 
-# 5. Leads Module
+## 4. Contact Management
 
-**Description**
+Description:
 
-The Leads module helps track potential customers through different stages of the sales process.
+- Contact List
+- Add Contact
+- Edit Contact
+- Contact Details
 
-**Status:** UI Mockup (To be replaced with actual implementation)
-
----
-
-# 6. Deals Module
-
-**Description**
-
-The Deals module manages sales opportunities, deal stages, expected revenue, and closing dates.
-
-**Status:** UI Mockup (To be replaced with actual implementation)
+Status: Pending
 
 ---
 
-# 7. Tasks Module
+## 5. Lead Management
 
-**Description**
+Description:
 
-The Tasks module allows users to create, assign, update, and monitor pending tasks related to CRM activities.
+- Lead List
+- Lead Status
+- Search & Filters
+- Lead Details
 
-**Status:** UI Mockup (To be replaced with actual implementation)
-
----
-
-# 8. Follow-ups Module
-
-**Description**
-
-The Follow-ups module helps schedule reminders and customer interactions to ensure timely communication.
-
-**Status:** UI Mockup (To be replaced with actual implementation)
+Status: Pending
 
 ---
 
-# 9. Activities Module
+## 6. Deal Pipeline
 
-**Description**
+Description:
 
-The Activities module maintains a history of user actions, customer interactions, and CRM events for better tracking and reporting.
+- Deal List
+- Deal Stages
+- Deal Details
+- Pipeline Overview
 
-**Status:** UI Mockup (To be replaced with actual implementation)
+Status: Pending
 
 ---
 
-# Future Update
+## 7. Task Management
 
-Once development is complete, this document will include:
+Description:
 
-- Actual Login Page Screenshot
-- Actual Dashboard Screenshot
-- Actual Companies Module Screenshot
-- Actual Contacts Module Screenshot
-- Actual Leads Module Screenshot
-- Actual Deals Module Screenshot
-- Actual Tasks Module Screenshot
-- Actual Follow-ups Module Screenshot
-- Actual Activities Module Screenshot
+- Task List
+- Create Task
+- Task Status
+- Due Dates
 
-These screenshots will demonstrate the fully functional CRM application.
+Status: Pending
+
+---
+
+## 8. Follow-up Management
+
+Description:
+
+- Follow-up Schedule
+- Follow-up Details
+- Reminder Information
+
+Status: Pending
+
+---
+
+## 9. Activity Logs
+
+Description:
+
+- User Activities
+- Recent Actions
+- Activity Timeline
+
+Status: Pending
+
+---
+
+## 10. User Profile
+
+Description:
+
+- Profile Information
+- Change Password
+- Account Settings
+
+Status: Pending
+
+---
+
+## 11. Responsive Design
+
+Description:
+
+Screenshots demonstrating responsive layouts on:
+
+- Desktop
+- Tablet
+- Mobile
+
+Status: Pending
+
+---
+
+# Screenshot Guidelines
+
+The screenshots should:
+
+- Be clear and high resolution.
+- Show complete user interfaces.
+- Avoid exposing sensitive information.
+- Demonstrate actual application functionality.
+- Be updated as new features are implemented.
+
+---
+
+# Future Updates
+
+This document will be updated throughout the development process as each CRM module is completed and tested.
+
+---
+
+# Conclusion
+
+The screenshots included in this document will provide a visual overview of the CRM application's functionality and user interface. They will help developers, reviewers, and users understand the application's features and overall workflow.
