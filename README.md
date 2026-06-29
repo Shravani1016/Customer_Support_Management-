@@ -38,29 +38,30 @@ pip install email-validator python-multipart bcrypt==4.0.1
 ### Step 3 — Create .env File (inside backend folder)
 
 **Mac:**
+
 DATABASE_URL=postgresql://YOUR_MAC_USERNAME@localhost:5432/crmdb
-
 SECRET_KEY=your-secret-key
-
 ALGORITHM=HS256
-
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+
 **Windows:**
+
 DATABASE_URL=postgresql://postgres:Root@localhost:5432/crmdb
-
 SECRET_KEY=your-secret-key
-
 ALGORITHM=HS256
-
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+
 ### Step 4 — Database Setup
 
 **Mac:**
+
 ```bash
 psql -U YOUR_USERNAME -d postgres -c "CREATE DATABASE crmdb;"
 ```
 
 **Windows (in psql):**
+
 ```sql
 CREATE DATABASE crmdb;
 ```
