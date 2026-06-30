@@ -2,178 +2,195 @@
 
 ## Overview
 
-This document will contain screenshots of the Customer Relationship Management (CRM) application after the implementation of each module. The screenshots will demonstrate the user interface, workflow, and major functionalities of the system.
-
----
-
-# Planned Screenshots
-
-The following screenshots will be added as development progresses.
+This document contains screenshots of the Customer Relationship Management (CRM) application after the implementation of each module. The screenshots demonstrate the user interface, workflow, and major functionalities of the system.
 
 ---
 
 ## 1. Login Page
 
 Description:
-
 - User Login Interface
 - Email and Password Fields
 - Login Validation
-- Forgot Password Link
 
-Status: Pending
+**Status: ✅ Done**
+
+![Login Page](screenshots/login.png)
 
 ---
 
 ## 2. Dashboard
 
 Description:
-
 - Dashboard Overview
 - Total Companies
 - Total Contacts
 - Active Leads
 - Deal Pipeline
 - Pending Tasks
-- Dashboard Analytics
 
-Status: Pending
+**Status: ✅ Done**
+
+![Dashboard](screenshots/dashboard.png)
 
 ---
 
-## 3. Company Management
+## 3. Lead Management
 
 Description:
+- Lead List
+- Lead Status
+- Search & Filters
+- Lead Details
 
-- Company List
-- Add Company Form
-- Edit Company
-- Company Details
+**Status: ✅ Done**
 
-Status: Pending
+![Leads](screenshots/leads.png)
 
 ---
 
 ## 4. Contact Management
 
 Description:
-
 - Contact List
 - Add Contact
 - Edit Contact
 - Contact Details
 
-Status: Pending
+**Status: ✅ Done**
+
+![Contacts](screenshots/contacts.png)
 
 ---
 
-## 5. Lead Management
+## 5. Company Management
 
 Description:
+- Company List
+- Add Company Form
+- Edit Company
+- Company Details
 
-- Lead List
-- Lead Status
-- Search & Filters
-- Lead Details
+**Status: ✅ Done**
 
-Status: Pending
+![Companies](screenshots/companies.png)
 
 ---
 
 ## 6. Deal Pipeline
 
 Description:
-
 - Deal List
 - Deal Stages
 - Deal Details
 - Pipeline Overview
 
-Status: Pending
+**Status: ✅ Done**
+
+![Deals](screenshots/deals.png)
 
 ---
 
 ## 7. Task Management
 
 Description:
-
 - Task List
 - Create Task
 - Task Status
 - Due Dates
 
-Status: Pending
+**Status: ✅ Done**
+
+![Tasks](screenshots/tasks.png)
 
 ---
 
-## 8. Follow-up Management
+## 8. API Documentation - Overview
 
 Description:
+- Swagger UI
+- All API Endpoints
+- Authentication Endpoints
+- CRUD Operations
 
+**Status: ✅ Done**
+
+![Swagger Overview](screenshots/swagger-overview.png)
+
+---
+
+## 9. API Documentation - Reports
+
+Description:
+- Reports Endpoints
+- Leads Summary
+- Deals Pipeline
+- Sales Performance
+- Activity Summary
+
+**Status: ✅ Done**
+
+![Swagger Reports](screenshots/swagger-reports.png)
+
+---
+
+## 10. Follow-up Management
+
+Description:
 - Follow-up Schedule
 - Follow-up Details
 - Reminder Information
 
-Status: Pending
+**Status: ⏳ Pending - Phase 6**
 
 ---
 
-## 9. Activity Logs
+## 11. Activity Logs
 
 Description:
-
 - User Activities
 - Recent Actions
 - Activity Timeline
 
-Status: Pending
+**Status: ⏳ Pending - Phase 6**
 
 ---
 
-## 10. User Profile
-
-Description:
-
-- Profile Information
-- Change Password
-- Account Settings
-
-Status: Pending
-
----
-
-## 11. Responsive Design
+## 12. Responsive Design
 
 Description:
 
 Screenshots demonstrating responsive layouts on:
-
 - Desktop
 - Tablet
 - Mobile
 
-Status: Pending
+**Status: ⏳ Pending - Priyal**
+
+---
+
+## 13. User Profile & Settings
+
+Description:
+- Profile Information
+- Change Password
+- Account Settings
+
+**Status: ⏳ Pending - Priyal**
 
 ---
 
 # Screenshot Guidelines
 
 The screenshots should:
-
-- Be clear and high resolution.
-- Show complete user interfaces.
-- Avoid exposing sensitive information.
-- Demonstrate actual application functionality.
-- Be updated as new features are implemented.
+- Be clear and high resolution
+- Show complete user interfaces
+- Avoid exposing sensitive information
+- Demonstrate actual application functionality
+- Be updated as new features are implemented
 
 ---
 
 # Future Updates
 
 This document will be updated throughout the development process as each CRM module is completed and tested.
-
----
-
-# Conclusion
-
-The screenshots included in this document will provide a visual overview of the CRM application's functionality and user interface. They will help developers, reviewers, and users understand the application's features and overall workflow.
