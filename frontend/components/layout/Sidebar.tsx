@@ -11,6 +11,8 @@ const navItems = [
   { label: 'Companies', href: '/dashboard/companies', icon: '🏢' },
   { label: 'Deals', href: '/dashboard/deals', icon: '💰' },
   { label: 'Tasks', href: '/dashboard/tasks', icon: '✅' },
+  { label: 'Activities', href: '/dashboard/activities', icon: '🕐' },
+  { label: 'Reports', href: '/dashboard/reports', icon: '📈' },
 ];
 
 export default function Sidebar() {

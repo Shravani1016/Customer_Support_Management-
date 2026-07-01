@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { EOF } from 'dns/promises';
 
 const api = axios.create({
   baseURL: 'http://localhost:8000',
