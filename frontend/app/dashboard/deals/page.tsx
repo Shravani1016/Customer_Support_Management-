@@ -22,6 +22,10 @@ export default function DealsPage() {
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
   const [showModal, setShowModal] = useState(false);
 
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [minValFilter, setMinValFilter] = useState('');
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -74,12 +78,28 @@ export default function DealsPage() {
     }
   };
 
-  const totalPipelineValue = deals
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setMinValFilter('');
+  };
+
+  // Compute filtered deals in real-time
+  const filteredDeals = deals.filter((deal) => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query || deal.title.toLowerCase().includes(query);
+
+    const minVal = parseFloat(minValFilter);
+    const matchesMinVal = isNaN(minVal) || deal.value >= minVal;
+
+    return matchesSearch && matchesMinVal;
+  });
+
+  const totalPipelineValue = filteredDeals
     .filter((d) => d.stage !== 'closed_lost')
     .reduce((sum, d) => sum + d.value, 0);
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading deals...</div>;
+    return <div className="p-8 text-center text-gray-500 ">Loading deals...</div>;
   }
 
   return (
@@ -87,7 +107,7 @@ export default function DealsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Deals Pipeline</h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 ">
             Total pipeline value: ${totalPipelineValue.toLocaleString()}
           </p>
         </div>
@@ -97,6 +117,55 @@ export default function DealsPage() {
         >
           + Add Deal
         </button>
+      </div>
+
+      {/* Search and Filters Bar */}
+      <div className="bg-white border rounded-xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
+        <div className="relative w-full sm:w-80 shrink-0">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </span>
+          <input
+            type="text"
+            placeholder="Search by deal title..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 h-10 w-full border rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-gray-100/50 transition-colors"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 justify-start sm:justify-end">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Min Value ($):</span>
+            <input
+              type="number"
+              placeholder="Min value..."
+              value={minValFilter}
+              onChange={e => setMinValFilter(e.target.value)}
+              className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-28"
+            />
+          </div>
+
+          {(searchQuery || minValFilter) && (
+            <button
+              onClick={handleClearFilters}
+              className="h-10 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors px-2 hover:underline cursor-pointer flex items-center"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter Stats */}
+      <div className="flex justify-between items-center px-1 mb-2">
+        <span className="text-xs text-gray-500 font-medium">
+          {deals.length === 0 
+            ? 'No deals available' 
+            : `Showing ${filteredDeals.length} of ${deals.length} deals`}
+        </span>
       </div>
 
       <DndContext
@@ -112,7 +181,7 @@ export default function DealsPage() {
               id={stage.id}
               label={stage.label}
               color={stage.color}
-              deals={deals.filter((d) => d.stage === stage.id)}
+              deals={filteredDeals.filter((d) => d.stage === stage.id)}
             />
           ))}
         </div>
