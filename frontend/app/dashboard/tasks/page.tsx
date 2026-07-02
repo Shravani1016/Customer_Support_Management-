@@ -17,6 +17,10 @@ export default function TasksPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', priority: 'medium' });
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
   const fetchTasks = async () => {
     try {
       setLoading(true);
@@ -57,42 +61,78 @@ export default function TasksPage() {
     }
   };
 
+  const handleDelete = async (task: Task) => {
+    if (!confirm(`Delete task "${task.title}"?`)) return;
+    try {
+      await api.delete(`/api/tasks/${task.id}`);
+      setTasks(prev => prev.filter(t => t.id !== task.id));
+      toast.success('Task deleted!');
+    } catch (err) {
+      console.error('Failed to delete task', err);
+      toast.error('Failed to delete task');
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setPriorityFilter('all');
+    setStatusFilter('all');
+  };
+
+  const filteredTasks = tasks.filter(task => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query ||
+      task.title.toLowerCase().includes(query) ||
+      (task.description && task.description.toLowerCase().includes(query));
+
+    const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+
+    let matchesStatus = true;
+    if (statusFilter === 'done') matchesStatus = task.is_completed === true;
+    else if (statusFilter === 'pending') matchesStatus = task.is_completed === false;
+
+    return matchesSearch && matchesPriority && matchesStatus;
+  });
+
   return (
-    <div>
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Tasks</h1>
-        <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+        <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
+        >
           + Add Task
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
-          <h2 className="font-semibold text-gray-700 mb-4">New Task</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white border rounded-lg p-4 mb-6">
+          <h2 className="font-semibold mb-3 text-slate-900">New Task</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
             <input
               placeholder="Title *"
               value={form.title}
               onChange={e => setForm({ ...form, title: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             />
             <input
               placeholder="Description"
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             />
             <select
               value={form.priority}
               onChange={e => setForm({ ...form, priority: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm"
+              className="border rounded-lg px-3 py-2 text-sm text-black"
             >
               {['low', 'medium', 'high'].map(p => (
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
           </div>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2">
             <button
               onClick={handleCreate}
               disabled={saving}
@@ -110,47 +150,117 @@ export default function TasksPage() {
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600 border-b">
-              <tr>
-                {['Done', 'Title', 'Description', 'Priority', 'Status'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {tasks.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8 text-gray-400">No tasks yet.</td></tr>
-              ) : (
-                tasks.map(task => (
-                  <tr key={task.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={task.is_completed}
-                        onChange={() => handleComplete(task)}
-                        className="w-4 h-4"
-                      />
-                    </td>
-                    <td className={`px-4 py-3 font-medium ${task.is_completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                      {task.title}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{task.description || '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
-                        {task.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {task.is_completed ? '✅ Done' : '⏳ Pending'}
-                    </td>
-                  </tr>
-                ))
+        <>
+          {/* Search and Filters Bar */}
+          <div className="flex flex-col md:flex-row gap-3 mb-4 items-stretch md:items-center">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                placeholder="Search by title or description..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 h-10 w-full border rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 hover:bg-gray-100/50 transition-colors"
+              />
+            </div>
+
+            <div className="flex gap-3 items-center">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-gray-500 uppercase">Priority:</label>
+                <select
+                  value={priorityFilter}
+                  onChange={e => setPriorityFilter(e.target.value)}
+                  className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                >
+                  <option value="all">All Priorities</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-gray-500 uppercase">Status:</label>
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="done">Done</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+
+              {(searchQuery || priorityFilter !== 'all' || statusFilter !== 'all') && (
+                <button onClick={handleClearFilters} className="text-sm text-blue-600 hover:underline">
+                  Clear Filters
+                </button>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-500 mb-2">
+            {tasks.length === 0
+              ? 'No tasks available'
+              : `Showing ${filteredTasks.length} of ${tasks.length} tasks`}
+          </div>
+
+          <div className="bg-white border rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600 text-left">
+                <tr>
+                  {['Done', 'Title', 'Description', 'Priority', 'Status', 'Actions'].map(h => (
+                    <th key={h} className="p-3 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.length === 0 ? (
+                  <tr><td colSpan={6} className="p-6 text-center text-gray-400">No tasks yet.</td></tr>
+                ) : filteredTasks.length === 0 ? (
+                  <tr><td colSpan={6} className="p-6 text-center text-gray-400">No tasks match your search criteria.</td></tr>
+                ) : (
+                  filteredTasks.map(task => (
+                    <tr key={task.id} className="border-t hover:bg-gray-50">
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={task.is_completed}
+                          onChange={() => handleComplete(task)}
+                          className="w-4 h-4"
+                        />
+                      </td>
+                      <td className={`p-3 font-medium ${task.is_completed ? 'line-through text-gray-400' : 'text-slate-900'}`}>
+                        {task.title}
+                      </td>
+                      <td className="p-3 text-gray-600">{task.description || '—'}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
+                          {task.priority}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        {task.is_completed ? '✅ Done' : '⏳ Pending'}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => handleDelete(task)}
+                          className="text-red-500 hover:text-red-600 font-medium text-sm cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

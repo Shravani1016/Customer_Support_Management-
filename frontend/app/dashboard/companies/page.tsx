@@ -11,6 +11,10 @@ export default function CompaniesPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: '', industry: '', website: '', phone: '' });
 
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [industryFilter, setIndustryFilter] = useState('all');
+
   const fetchCompanies = async () => {
     try {
       setLoading(true);
@@ -52,6 +56,31 @@ export default function CompaniesPage() {
     }
   };
 
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setIndustryFilter('all');
+  };
+
+  // Get unique non-empty industries sorted alphabetically
+  const uniqueIndustries = Array.from(
+    new Set(companies.map(company => company.industry?.trim() || '').filter(Boolean))
+  ).sort();
+
+  // Compute filtered companies in real-time
+  const filteredCompanies = companies.filter(company => {
+    const query = searchQuery.toLowerCase().trim();
+
+    const matchesSearch = !query ||
+      company.name.toLowerCase().includes(query) ||
+      (company.website && company.website.toLowerCase().includes(query)) ||
+      (company.phone && company.phone.toLowerCase().includes(query));
+
+    const companyIndustry = company.industry?.trim() || '';
+    const matchesIndustry = industryFilter === 'all' || companyIndustry === industryFilter;
+
+    return matchesSearch && matchesIndustry;
+  });
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -65,32 +94,15 @@ export default function CompaniesPage() {
         <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
           <h2 className="font-semibold text-gray-700 mb-4">New Company</h2>
           <div className="grid grid-cols-2 gap-4">
-            <input
-              placeholder="Company Name *"
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              placeholder="Industry"
-              value={form.industry}
-              onChange={e => setForm({ ...form, industry: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              placeholder="Website"
-              value={form.website}
-              onChange={e => setForm({ ...form, website: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              placeholder="Phone (10 digits)"
-              type="tel"
-              maxLength={10}
-              value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            {['name', 'industry', 'website', 'phone'].map(field => (
+              <input
+                key={field}
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={(form as any)[field]}
+                onChange={e => setForm({ ...form, [field]: e.target.value })}
+                className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              />
+            ))}
           </div>
           <div className="flex gap-2 mt-4">
             <button
@@ -110,34 +122,92 @@ export default function CompaniesPage() {
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600 border-b">
-              <tr>
-                {['Name', 'Industry', 'Website', 'Phone', 'Actions'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {companies.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8 text-gray-400">No companies yet.</td></tr>
-              ) : (
-                companies.map(company => (
-                  <tr key={company.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{company.name}</td>
-                    <td className="px-4 py-3 text-gray-500">{company.industry || '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">{company.website || '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">{company.phone || '—'}</td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 text-xs">Delete</button>
-                    </td>
-                  </tr>
-                ))
+        <>
+          {/* Search and Filters Bar */}
+          <div className="bg-white border rounded-xl p-4 mb-6 shadow-sm flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            <div className="relative w-full md:w-96 shrink-0">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </span>
+              <input
+                type="text"
+                placeholder="Search by name, website, or phone..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 h-10 w-full border rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-gray-100/50 transition-colors"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 justify-start md:justify-end">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Industry:</span>
+                <select
+                  value={industryFilter}
+                  onChange={e => setIndustryFilter(e.target.value)}
+                  className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer min-w-32.5 max-w-40"
+                >
+                  <option value="all">All Industries</option>
+                  {uniqueIndustries.map(industry => (
+                    <option key={industry} value={industry}>
+                      {industry}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {(searchQuery || industryFilter !== 'all') && (
+                <button
+                  onClick={handleClearFilters}
+                  className="h-10 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors px-2 hover:underline cursor-pointer flex items-center"
+                >
+                  Clear Filters
+                </button>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
+
+          {/* Filter Stats */}
+          <div className="flex justify-between items-center px-1 mb-2">
+            <span className="text-xs text-gray-500 font-medium">
+              {companies.length === 0
+                ? 'No companies available'
+                : `Showing ${filteredCompanies.length} of ${companies.length} companies`}
+            </span>
+          </div>
+
+          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600 border-b">
+                <tr>
+                  {['Name', 'Industry', 'Website', 'Phone', 'Actions'].map(h => (
+                    <th key={h} className="text-left px-4 py-3 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {companies.length === 0 ? (
+                  <tr><td colSpan={5} className="text-center py-8 text-gray-400">No companies yet.</td></tr>
+                ) : filteredCompanies.length === 0 ? (
+                  <tr><td colSpan={5} className="text-center py-8 text-gray-400">No companies match your search criteria.</td></tr>
+                ) : (
+                  filteredCompanies.map(company => (
+                    <tr key={company.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-800">{company.name}</td>
+                      <td className="px-4 py-3 text-gray-500">{company.industry || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{company.website || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{company.phone || '—'}</td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 text-xs">Delete</button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
