@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers import task
 from app.database import Base, engine
 from app.models import models
 from app.routers import (
@@ -39,6 +40,7 @@ app.include_router(contacts.router)
 app.include_router(deals.router)
 app.include_router(activities.router)
 app.include_router(reports.router)
+app.include_router(task.router)
 
 # Root endpoint
 @app.get("/")
