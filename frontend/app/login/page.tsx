@@ -50,7 +50,10 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              
+            </div>
             <input
               type="password"
               value={password}
@@ -59,6 +62,15 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
             />
+           <div>
+             <button
+                type="button"
+                onClick={() => alert('Please contact your administrator to reset your password.')}
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                Forgot password?
+              </button>
+           </div>
           </div>
           <button
             type="submit"
