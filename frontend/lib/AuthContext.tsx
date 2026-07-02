@@ -38,12 +38,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     localStorage.setItem('token', res.data.access_token);
+    localStorage.setItem('refresh_token', res.data.refresh_token);
     const me = await api.get('/api/auth/me');
     setUser(me.data);
   };
 
   const logout = () => {
+    api.post('/api/auth/logout').catch(() => {});
     localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
     setUser(null);
   };
 
