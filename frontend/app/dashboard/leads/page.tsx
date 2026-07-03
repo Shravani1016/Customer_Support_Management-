@@ -5,11 +5,11 @@ import { Lead } from '@/types';
 import toast from 'react-hot-toast';
 
 const statusColors: Record<string, string> = {
-  new: 'bg-blue-100 text-blue-700',
-  contacted: 'bg-yellow-100 text-yellow-700',
-  qualified: 'bg-green-100 text-green-700',
-  lost: 'bg-red-100 text-red-700',
-  converted: 'bg-purple-100 text-purple-700',
+  new: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+  contacted: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300',
+  qualified: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300',
+  lost: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
+  converted: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
 };
 
 export default function LeadsPage() {
@@ -109,15 +109,33 @@ export default function LeadsPage() {
         <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
           <h2 className="font-semibold text-gray-700 mb-4">New Lead</h2>
           <div className="grid grid-cols-2 gap-4">
-            {['name', 'email', 'phone', 'source'].map(field => (
-              <input
-                key={field}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                value={(form as any)[field]}
-                onChange={e => setForm({ ...form, [field]: e.target.value })}
-                className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-              />
-            ))}
+<input
+  placeholder="Name *"
+  value={form.name}
+  onChange={e => setForm({ ...form, name: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Email"
+  type="email"
+  value={form.email}
+  onChange={e => setForm({ ...form, email: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Phone (10 digits)"
+  type="tel"
+  maxLength={10}
+  value={form.phone}
+  onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Source"
+  value={form.source}
+  onChange={e => setForm({ ...form, source: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
             <select
               value={form.status}
               onChange={e => setForm({ ...form, status: e.target.value })}
@@ -244,7 +262,7 @@ export default function LeadsPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">{lead.source || '—'}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => handleDelete(lead.id)} className="text-red-500 hover:text-red-700 text-xs">
+                        <button onClick={() => handleDelete(lead.id)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition">
                           Delete
                         </button>
                       </td>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import api from '@/lib/api';
+import PerformanceChart from '@/components/PerformanceChart';
 import {
   Target, Users, Building2, DollarSign,
   TrendingUp, ArrowUpRight, Plus,
@@ -188,6 +189,8 @@ export default function DashboardPage() {
           })}
         </div>
 
+        <PerformanceChart />
+
         {/* Quick Access + Tips */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Access */}
@@ -236,7 +239,7 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={tip.title}
-                    className="flex gap-3 p-4 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-slate-50/60 transition"
+                    className="flex gap-3 p-4 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 transition-all bg-white dark:bg-slate-800"
                   >
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${tip.color}`}>
                       <Icon className="w-4 h-4" />

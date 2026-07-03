@@ -5,9 +5,9 @@ import { Task } from '@/types';
 import toast from 'react-hot-toast';
 
 const priorityColors: Record<string, string> = {
-  low: 'bg-green-100 text-green-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  high: 'bg-red-100 text-red-700',
+  low: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300',
+  medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300',
+  high: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
 };
 
 export default function TasksPage() {
@@ -95,7 +95,7 @@ export default function TasksPage() {
   });
 
   return (
-    <div className="p-6">
+    <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
         <button
@@ -249,7 +249,7 @@ export default function TasksPage() {
                       <td className="p-3">
                         <button
                           onClick={() => handleDelete(task)}
-                          className="text-red-500 hover:text-red-600 font-medium text-sm cursor-pointer"
+                          className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium text-sm cursor-pointer px-2 py-1 rounded-md transition"
                         >
                           Delete
                         </button>

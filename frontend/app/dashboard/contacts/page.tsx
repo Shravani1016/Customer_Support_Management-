@@ -78,15 +78,33 @@ export default function ContactsPage() {
         <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
           <h2 className="font-semibold text-gray-700 mb-4">New Contact</h2>
           <div className="grid grid-cols-2 gap-4">
-            {['first_name', 'last_name', 'email', 'phone'].map(field => (
-              <input
-                key={field}
-                placeholder={field.replace('_', ' ')}
-                value={(form as any)[field]}
-                onChange={e => setForm({ ...form, [field]: e.target.value })}
-                className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-              />
-            ))}
+<input
+  placeholder="First Name *"
+  value={form.first_name}
+  onChange={e => setForm({ ...form, first_name: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Last Name *"
+  value={form.last_name}
+  onChange={e => setForm({ ...form, last_name: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Email"
+  type="email"
+  value={form.email}
+  onChange={e => setForm({ ...form, email: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Phone (10 digits)"
+  type="tel"
+  maxLength={10}
+  value={form.phone}
+  onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
           </div>
           <div className="flex gap-2 mt-4">
             <button
@@ -164,7 +182,7 @@ export default function ContactsPage() {
                       <td className="px-4 py-3 text-gray-500">{contact.email || '—'}</td>
                       <td className="px-4 py-3 text-gray-500">{contact.phone || '—'}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => handleDelete(contact.id)} className="text-red-500 hover:text-red-700 text-xs">Delete</button>
+                        <button onClick={() => handleDelete(contact.id)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition">Delete</button>
                       </td>
                     </tr>
                   ))

@@ -94,15 +94,32 @@ export default function CompaniesPage() {
         <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
           <h2 className="font-semibold text-gray-700 mb-4">New Company</h2>
           <div className="grid grid-cols-2 gap-4">
-            {['name', 'industry', 'website', 'phone'].map(field => (
-              <input
-                key={field}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                value={(form as any)[field]}
-                onChange={e => setForm({ ...form, [field]: e.target.value })}
-                className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-              />
-            ))}
+<input
+  placeholder="Company Name *"
+  value={form.name}
+  onChange={e => setForm({ ...form, name: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Industry"
+  value={form.industry}
+  onChange={e => setForm({ ...form, industry: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Website"
+  value={form.website}
+  onChange={e => setForm({ ...form, website: e.target.value })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
+<input
+  placeholder="Phone (10 digits)"
+  type="tel"
+  maxLength={10}
+  value={form.phone}
+  onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
+  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+/>
           </div>
           <div className="flex gap-2 mt-4">
             <button
@@ -199,7 +216,7 @@ export default function CompaniesPage() {
                       <td className="px-4 py-3 text-gray-500">{company.website || '—'}</td>
                       <td className="px-4 py-3 text-gray-500">{company.phone || '—'}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 text-xs">Delete</button>
+                        <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition">Delete</button>
                       </td>
                     </tr>
                   ))
