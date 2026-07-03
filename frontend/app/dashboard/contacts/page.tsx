@@ -54,6 +54,24 @@ export default function ContactsPage() {
       toast.error('Failed to delete contact');
     }
   };
+ 
+  // export data
+  
+  const exportCSV = async () => {
+    try {
+      const res = await api.get('/api/contacts/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'contacts.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('CSV exported');
+    } catch {
+      toast.error('Failed to export CSV');
+    }
+  };
 
   // Real-time filtering logic
   const filteredContacts = contacts.filter(contact => {
@@ -69,9 +87,14 @@ export default function ContactsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Contacts</h1>
-        <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-          + Add Contact
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            + Add Contact
+          </button>
+          <button onClick={exportCSV} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {showForm && (

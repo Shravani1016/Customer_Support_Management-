@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from typing import List
+import csv
+import io
 
 from app.database import get_db
 from app.models.models import Company
@@ -36,6 +39,39 @@ def create_company(company: CompanyCreate, db: Session = Depends(get_db), curren
     db.commit()
     db.refresh(db_company)
     return db_company
+
+
+@router.get(
+    "/export",
+    summary="Export companies as CSV",
+    description="Downloads all non-deleted companies as a CSV file.",
+)
+def export_companies_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    companies = db.query(Company).filter(Company.is_deleted == False).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header row
+    writer.writerow(["ID", "Name", "Industry", "Website", "Phone", "Created At"])
+
+    # Write data rows
+    for company in companies:
+        writer.writerow([
+            company.id,
+            company.name,
+            company.industry or "",
+            company.website or "",
+            company.phone or "",
+            company.created_at.strftime("%Y-%m-%d %H:%M:%S") if company.created_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=companies.csv"},
+    )
 
 
 @router.get(

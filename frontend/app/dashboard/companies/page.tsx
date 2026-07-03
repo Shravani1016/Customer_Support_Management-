@@ -61,6 +61,22 @@ export default function CompaniesPage() {
     setIndustryFilter('all');
   };
 
+  const exportCSV = async () => {
+    try {
+      const res = await api.get('/api/companies/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'companies.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('CSV exported');
+    } catch {
+      toast.error('Failed to export CSV');
+    }
+  };
+
   // Get unique non-empty industries sorted alphabetically
   const uniqueIndustries = Array.from(
     new Set(companies.map(company => company.industry?.trim() || '').filter(Boolean))
@@ -85,9 +101,14 @@ export default function CompaniesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Companies</h1>
-        <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-          + Add Company
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            + Add Company
+          </button>
+          <button onClick={exportCSV} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {showForm && (

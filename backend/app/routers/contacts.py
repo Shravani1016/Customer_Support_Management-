@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from typing import List
+import csv
+import io
 
 from app.database import get_db
 from app.models.models import Contact
@@ -36,6 +39,39 @@ def create_contact(contact: ContactCreate, db: Session = Depends(get_db), curren
     db.commit()
     db.refresh(db_contact)
     return db_contact
+
+
+@router.get(
+    "/export",
+    summary="Export contacts as CSV",
+    description="Downloads all non-deleted contacts as a CSV file.",
+)
+def export_contacts_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    contacts = db.query(Contact).filter(Contact.is_deleted == False).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header row
+    writer.writerow(["ID", "First Name", "Last Name", "Email", "Phone", "Created At"])
+
+    # Write data rows
+    for contact in contacts:
+        writer.writerow([
+            contact.id,
+            contact.first_name,
+            contact.last_name,
+            contact.email or "",
+            contact.phone or "",
+            contact.created_at.strftime("%Y-%m-%d %H:%M:%S") if contact.created_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=contacts.csv"},
+    )
 
 
 @router.get(
