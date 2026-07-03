@@ -1,6 +1,8 @@
 from datetime import date
-
+import csv
+import io
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy import Date
 from sqlalchemy.orm import Session
 
@@ -25,6 +27,40 @@ def get_today_tasks(db: Session = Depends(get_db)):
         .filter(Task.due_date.isnot(None))
         .filter(Task.due_date.cast(Date) == today)
         .all()
+    )
+
+
+@router.get(
+    "/export",
+    summary="Export tasks as CSV",
+    description="Downloads all tasks as a CSV file.",
+)
+def export_tasks_csv(db: Session = Depends(get_db)):
+    tasks = db.query(Task).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header row
+    writer.writerow(["ID", "Title", "Description", "Priority", "Status", "Due Date", "Created At"])
+
+    # Write data rows
+    for task in tasks:
+        writer.writerow([
+            task.id,
+            task.title,
+            task.description or "",
+            task.priority.value if hasattr(task.priority, "value") else str(task.priority),
+            "Done" if task.is_completed else "Pending",
+            task.due_date.strftime("%Y-%m-%d") if task.due_date else "",
+            task.created_at.strftime("%Y-%m-%d %H:%M:%S") if task.created_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=tasks.csv"},
     )
 
 

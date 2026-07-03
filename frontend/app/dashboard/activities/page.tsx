@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import api from '@/lib/api';
 import { Activity, ACTIVITY_ICONS, ACTIVITY_COLORS } from '@/types/activity';
+import toast from 'react-hot-toast';
 
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -57,6 +58,22 @@ export default function ActivitiesPage() {
     }
   };
 
+  const exportCSV = async () => {
+    try {
+      const res = await api.get('/api/activities/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'activities.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('CSV exported');
+    } catch {
+      toast.error('Failed to export CSV');
+    }
+  };
+
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleString('en-US', {
@@ -97,12 +114,20 @@ export default function ActivitiesPage() {
           Activities
         </h1>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
-        >
-          + Log Activity
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+          >
+            + Log Activity
+          </button>
+          <button
+            onClick={exportCSV}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium transition"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Search & Filters */}

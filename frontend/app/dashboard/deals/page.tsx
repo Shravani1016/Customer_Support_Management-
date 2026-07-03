@@ -1,202 +1,188 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
-  DragOverlay,
+  DragOverEvent,
   DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
   closestCorners,
+  DragOverlay,
 } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import api from '@/lib/api';
 import { Deal, STAGES } from '@/types/deal';
 import KanbanColumn from '@/components/KanbanColumn';
 import DealCard from '@/components/DealCard';
-import AddDealModal from '../../../components/AddDealModal';
+import AddDealModal from '@/components/AddDealModal';
+import toast from 'react-hot-toast';
 
 export default function DealsPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
-  const [showModal, setShowModal] = useState(false);
-
-  // Search and filter states
-  const [searchQuery, setSearchQuery] = useState('');
-  const [minValFilter, setMinValFilter] = useState('');
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const fetchDeals = async () => {
     try {
+      setLoading(true);
       const res = await api.get('/api/deals/');
       setDeals(res.data);
-    } catch (err) {
-      console.error('Failed to fetch deals', err);
+    } catch {
+      toast.error('Failed to load deals');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDeals();
-  }, []);
+  useEffect(() => { fetchDeals(); }, []);
+
+  const exportCSV = async () => {
+    try {
+      const res = await api.get('/api/deals/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'deals.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('CSV exported');
+    } catch {
+      toast.error('Failed to export CSV');
+    }
+  };
+
+  const getDealsByStage = (stageId: string) =>
+    deals.filter((d) => d.stage === stageId);
 
   const handleDragStart = (event: DragStartEvent) => {
     const deal = deals.find((d) => d.id === event.active.id);
     setActiveDeal(deal || null);
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    setActiveDeal(null);
     if (!over) return;
 
-    const dealId = active.id as number;
-    const newStage = over.id as string;
+    const activeId = active.id as number;
+    const overId = over.id;
 
-    const deal = deals.find((d) => d.id === dealId);
-    if (!deal || deal.stage === newStage) return;
+    const activeDealItem = deals.find((d) => d.id === activeId);
+    if (!activeDealItem) return;
 
-    const validStages = STAGES.map((s) => s.id);
-    if (!validStages.includes(newStage as any)) return;
-
-    setDeals((prev) =>
-      prev.map((d) => (d.id === dealId ? { ...d, stage: newStage as Deal['stage'] } : d))
-    );
-
-    try {
-      await api.patch(`/api/deals/${dealId}/stage`, { stage: newStage });
-    } catch (err) {
-      console.error('Failed to update stage', err);
-      fetchDeals();
+    // Check if dragging over a column (stage id) or another deal
+    const overStage = STAGES.find((s) => s.id === overId);
+    if (overStage && activeDealItem.stage !== overStage.id) {
+      setDeals((prev) =>
+        prev.map((d) =>
+          d.id === activeId ? { ...d, stage: overStage.id as Deal['stage'] } : d
+        )
+      );
+    } else {
+      // Dragging over a deal card — move to that deal's column
+      const overDeal = deals.find((d) => d.id === overId);
+      if (overDeal && activeDealItem.stage !== overDeal.stage) {
+        setDeals((prev) =>
+          prev.map((d) =>
+            d.id === activeId ? { ...d, stage: overDeal.stage } : d
+          )
+        );
+      }
     }
   };
 
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setMinValFilter('');
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDeal(null);
+
+    if (!over) return;
+
+    const activeId = active.id as number;
+    const deal = deals.find((d) => d.id === activeId);
+    if (!deal) return;
+
+    // Persist stage change to backend
+    try {
+      await api.patch(`/api/deals/${activeId}/stage`, { stage: deal.stage });
+    } catch {
+      toast.error('Failed to update deal stage');
+      fetchDeals(); // revert on error
+    }
   };
 
-  // Compute filtered deals in real-time
-  const filteredDeals = deals.filter((deal) => {
-    const query = searchQuery.toLowerCase().trim();
-    const matchesSearch = !query || deal.title.toLowerCase().includes(query);
-
-    const minVal = parseFloat(minValFilter);
-    const matchesMinVal = isNaN(minVal) || deal.value >= minVal;
-
-    return matchesSearch && matchesMinVal;
-  });
-
-  const totalPipelineValue = filteredDeals
-    .filter((d) => d.stage !== 'closed_lost')
-    .reduce((sum, d) => sum + d.value, 0);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const totalValue = deals.reduce((sum, d) => sum + d.value, 0);
+  const wonDeals = deals.filter((d) => d.stage === 'closed_won');
+  const wonValue = wonDeals.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Deals Pipeline</h1>
-          <p className="text-gray-500 ">
-            Total pipeline value: ${totalPipelineValue.toLocaleString()}
+          <p className="text-sm text-gray-500 mt-0.5">
+            {deals.length} deals · Total: ${totalValue.toLocaleString()} · Won: ${wonValue.toLocaleString()}
           </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
-        >
-          + Add Deal
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-medium transition"
+          >
+            + Add Deal
+          </button>
+          <button
+            onClick={exportCSV}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium transition"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
-      {/* Search and Filters Bar */}
-      <div className="bg-white border rounded-xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
-        <div className="relative w-full sm:w-80 shrink-0">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </span>
-          <input
-            type="text"
-            placeholder="Search by deal title..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 h-10 w-full border rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-gray-100/50 transition-colors"
-          />
+      {/* Kanban Board */}
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-4 justify-start sm:justify-end">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Min Value ($):</span>
-            <input
-              type="number"
-              placeholder="Min value..."
-              value={minValFilter}
-              onChange={e => setMinValFilter(e.target.value)}
-              className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-28"
-            />
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {STAGES.map((stage) => (
+              <KanbanColumn
+                key={stage.id}
+                id={stage.id}
+                label={stage.label}
+                color={stage.color}
+                deals={getDealsByStage(stage.id)}
+              />
+            ))}
           </div>
 
-          {(searchQuery || minValFilter) && (
-            <button
-              onClick={handleClearFilters}
-              className="h-10 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors px-2 hover:underline cursor-pointer flex items-center"
-            >
-              Clear Filters
-            </button>
-          )}
-        </div>
-      </div>
+          <DragOverlay>
+            {activeDeal ? <DealCard deal={activeDeal} /> : null}
+          </DragOverlay>
+        </DndContext>
+      )}
 
-      {/* Filter Stats */}
-      <div className="flex justify-between items-center px-1 mb-2">
-        <span className="text-xs text-gray-500 font-medium">
-          {deals.length === 0 
-            ? 'No deals available' 
-            : `Showing ${filteredDeals.length} of ${deals.length} deals`}
-        </span>
-      </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {STAGES.map((stage) => (
-            <KanbanColumn
-              key={stage.id}
-              id={stage.id}
-              label={stage.label}
-              color={stage.color}
-              deals={filteredDeals.filter((d) => d.stage === stage.id)}
-            />
-          ))}
-        </div>
-        <DragOverlay>
-          {activeDeal ? <DealCard deal={activeDeal} /> : null}
-        </DragOverlay>
-      </DndContext>
-
-      {showModal && (
+      {/* Add Deal Modal */}
+      {showAddModal && (
         <AddDealModal
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowAddModal(false)}
           onCreated={fetchDeals}
         />
       )}
