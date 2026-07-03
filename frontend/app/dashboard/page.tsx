@@ -239,7 +239,7 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={tip.title}
-                    className="flex gap-3 p-4 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 transition-all bg-white dark:bg-slate-800"
+                    className="flex gap-3 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 transition-all bg-white dark:bg-slate-800"
                   >
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${tip.color}`}>
                       <Icon className="w-4 h-4" />

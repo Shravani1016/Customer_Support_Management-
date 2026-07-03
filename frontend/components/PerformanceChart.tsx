@@ -23,7 +23,7 @@ export default function PerformanceChart() {
         </div>
         <div className="flex items-center gap-4 text-xs font-medium">
           <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-400" /> This week
+            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" /> This week
           </span>
           <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
             <span className="w-2.5 h-2.5 rounded-full bg-slate-800 dark:bg-slate-400" /> Last week
@@ -35,8 +35,8 @@ export default function PerformanceChart() {
         <AreaChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="thisWeekGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#fb923c" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
+              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="lastWeekGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.2} />
@@ -64,7 +64,7 @@ export default function PerformanceChart() {
           <Area
             type="monotone"
             dataKey="thisWeek"
-            stroke="#fb923c"
+            stroke="#6366f1"
             strokeWidth={2.5}
             fill="url(#thisWeekGradient)"
           />

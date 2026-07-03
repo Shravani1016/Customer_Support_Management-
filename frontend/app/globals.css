@@ -19,77 +19,98 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ===== Dark Mode Styles ===== */
+/* ===== Dark Mode — Layered Premium Theme ===== */
 
 .dark body {
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: #0a0e17;
+  color: #e2e8f0;
 }
 
-.dark .bg-white {
-  background-color: #1e293b !important;
-}
-
+/* Page-level backgrounds — darkest layer */
 .dark .bg-slate-50,
-.dark .bg-gray-50 {
-  background-color: #0f172a !important;
+.dark .bg-gray-50,
+.dark .bg-gradient-to-br.from-slate-50 {
+  background: #0a0e17 !important;
+}
+
+/* Cards — lighter layer, creates depth against page bg */
+.dark .bg-white {
+  background-color: #131826 !important;
 }
 
 .dark .bg-gray-100,
 .dark .bg-slate-100 {
-  background-color: #1e293b !important;
+  background-color: #1a2033 !important;
 }
 
+/* Sidebar / darkest surfaces */
+.dark .bg-slate-900 {
+  background-color: #060911 !important;
+}
+
+.dark .bg-slate-800 {
+  background-color: #131826 !important;
+}
+
+/* Text hierarchy */
 .dark .text-gray-800,
 .dark .text-gray-900,
 .dark .text-slate-800,
 .dark .text-slate-900 {
-  color: #f1f5f9 !important;
+  color: #f8fafc !important;
 }
 
 .dark .text-gray-500,
 .dark .text-gray-600,
 .dark .text-slate-500,
 .dark .text-slate-600 {
-  color: #94a3b8 !important;
+  color: #8b95a8 !important;
 }
 
 .dark .text-gray-700,
 .dark .text-slate-700 {
-  color: #cbd5e1 !important;
+  color: #c3cad9 !important;
 }
 
+/* Borders — subtle indigo-tinted glow instead of flat grey */
 .dark .border,
 .dark .border-gray-100,
 .dark .border-gray-200,
 .dark .border-gray-300,
 .dark .border-slate-100,
 .dark .border-slate-200 {
-  border-color: #334155 !important;
+  border-color: rgba(99, 102, 241, 0.15) !important;
 }
 
 .dark .hover\:bg-gray-50:hover,
 .dark .hover\:bg-slate-50:hover,
 .dark .hover\:bg-indigo-50:hover {
-  background-color: #334155 !important;
+  background-color: #1a2033 !important;
 }
 
 .dark thead,
 .dark .bg-gray-50 thead {
-  background-color: #1e293b !important;
+  background-color: #0e1320 !important;
 }
 
 .dark .divide-gray-100 > *,
 .dark .divide-y > * {
-  border-color: #334155 !important;
+  border-color: rgba(99, 102, 241, 0.12) !important;
 }
 
+/* Inputs — slightly recessed feel */
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: #1e293b !important;
+  background-color: #0e1320 !important;
   color: #f1f5f9 !important;
-  border-color: #475569 !important;
+  border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #6366f1 !important;
 }
 
 .dark input::placeholder,
@@ -97,42 +118,75 @@ body {
   color: #64748b !important;
 }
 
+/* Shadows — soft colored glow instead of flat black */
 .dark .shadow-sm,
 .dark .shadow,
 .dark .shadow-md {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(99, 102, 241, 0.06) !important;
 }
 
-.dark .bg-gradient-to-br.from-slate-50 {
-  background: #0f172a !important;
+.dark .shadow-xl {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(99, 102, 241, 0.08) !important;
 }
 
 .dark .ring-1 {
-  --tw-ring-color: #334155 !important;
+  --tw-ring-color: rgba(99, 102, 241, 0.15) !important;
 }
 
-/* Cards, chart containers, badges */
+/* Card borders get a hairline glow */
 .dark .rounded-xl,
 .dark .rounded-lg,
 .dark .rounded-2xl {
-  border-color: #334155;
+  border-color: rgba(99, 102, 241, 0.12);
 }
 
+/* Badge/pill backgrounds — richer, more saturated */
 .dark .bg-indigo-50 {
-  background-color: rgba(99, 102, 241, 0.15) !important;
+  background-color: rgba(99, 102, 241, 0.18) !important;
 }
 
 .dark .bg-emerald-50,
 .dark .bg-green-50 {
-  background-color: rgba(16, 185, 129, 0.15) !important;
+  background-color: rgba(16, 185, 129, 0.18) !important;
 }
 
 .dark .bg-rose-50,
 .dark .bg-red-50 {
-  background-color: rgba(244, 63, 94, 0.15) !important;
+  background-color: rgba(244, 63, 94, 0.18) !important;
 }
 
 .dark .bg-amber-50,
 .dark .bg-yellow-50 {
-  background-color: rgba(245, 158, 11, 0.15) !important;
+  background-color: rgba(245, 158, 11, 0.18) !important;
+}
+
+.dark .bg-fuchsia-50 {
+  background-color: rgba(217, 70, 239, 0.18) !important;
+}
+
+.dark .bg-teal-50 {
+  background-color: rgba(20, 184, 166, 0.18) !important;
+}
+
+.dark .bg-orange-50 {
+  background-color: rgba(249, 115, 22, 0.18) !important;
+}
+
+/* Scrollbar polish */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0a0e17;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 8px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }
