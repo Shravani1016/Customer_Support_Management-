@@ -6,6 +6,7 @@ from app.models.models import User
 from app.schemas.user import UserCreate, UserResponse, Token, RefreshRequest
 from app.utils.auth import hash_password, verify_password, create_access_token, create_refresh_token, decode_refresh_token
 from app.dependencies import get_current_user
+from app.core.logging_config import logger
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -39,6 +40,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+    logger.info(f"New user registered: {user.email} (role={user.role})")
     return user
 
 @router.post(
@@ -60,6 +62,7 @@ Authenticate a user and return a JWT access token and refresh token.
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
+        logger.warning(f"Failed login attempt for email: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
@@ -68,6 +71,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     refresh_token = create_refresh_token(data={"sub": user.email})
     user.refresh_token = refresh_token
     db.commit()
+    logger.info(f"User logged in: {user.email}")
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post(

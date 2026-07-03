@@ -99,7 +99,11 @@ export default function DealsPage() {
     .reduce((sum, d) => sum + d.value, 0);
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500 ">Loading deals...</div>;
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
