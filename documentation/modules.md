@@ -14,11 +14,10 @@ The Authentication module secures the CRM system by verifying user identity and 
 
 ### Features
 
+* User Registration
 * User Login
-* User Logout
-* Forgot Password
-* Reset Password
-* Change Password
+* User Logout (revokes refresh token)
+* Get Current User
 * JWT Access Token
 * Refresh Token
 * Protected Routes
@@ -40,14 +39,11 @@ The Dashboard provides an overview of business performance and customer activiti
 
 ### Features
 
-* Total Companies
+* Total Leads
 * Total Contacts
-* Active Leads
-* Deal Pipeline Summary
-* Pending Tasks
-* Upcoming Follow-ups
-* Recent Activities
-* Dashboard Analytics
+* Total Companies
+* Active Deals
+* Performance Overview Chart
 
 ### Benefits
 
@@ -66,11 +62,10 @@ The Company module manages organizations that interact with the business.
 ### Features
 
 * Add Company
-* Update Company
 * Delete Company
 * Search Companies
-* Company Details
-* Company Status
+* Filter by Industry
+* CSV Export
 
 ### Benefits
 
@@ -89,11 +84,10 @@ The Contact module stores and manages individual contacts associated with compan
 ### Features
 
 * Add Contact
-* Edit Contact
 * Delete Contact
-* Contact Information
-* Company Association
 * Search Contacts
+* Company Association
+* CSV Export
 
 ### Benefits
 
@@ -112,11 +106,10 @@ The Lead module tracks potential customers and sales opportunities.
 ### Features
 
 * Create Lead
-* Update Lead
-* Lead Status Tracking
-* Lead Assignment
-* Lead Notes
-* Search and Filters
+* Delete Lead
+* Lead Status Tracking (New, Contacted, Qualified, Lost, Converted)
+* Search and Filters (status, source)
+* CSV Export
 
 ### Benefits
 
@@ -135,11 +128,10 @@ The Deal module manages sales opportunities throughout the sales process.
 ### Features
 
 * Create Deal
-* Update Deal Stage
+* Update Deal Stage (Kanban drag-and-drop)
 * Assign Deal Value
-* Deal Progress Tracking
-* Deal Status
-* Sales Pipeline
+* Search Deals
+* Sales Pipeline visualization
 
 ### Benefits
 
@@ -158,11 +150,10 @@ The Task module helps users organize and manage work related to customers and sa
 ### Features
 
 * Create Task
-* Assign Task
-* Update Task
-* Task Priority
-* Due Dates
-* Task Status
+* Delete Task
+* Mark Complete / Pending
+* Task Priority (Low, Medium, High)
+* Search and Filters (priority, status)
 
 ### Benefits
 
@@ -172,40 +163,17 @@ The Task module helps users organize and manage work related to customers and sa
 
 ---
 
-# 8. Follow-up Module
+# 8. Activity Module
 
 ## Purpose
 
-The Follow-up module ensures timely communication with customers and leads.
+The Activity module records interactions performed with leads, contacts, and deals — including calls, emails, notes, and meetings.
 
 ### Features
 
-* Schedule Follow-up
-* Update Follow-up
-* Follow-up Status
-* Reminder Support
-* Follow-up Notes
-
-### Benefits
-
-* Better customer engagement
-* Reduced missed opportunities
-* Improved communication
-
----
-
-# 9. Activity Module
-
-## Purpose
-
-The Activity module records important interactions performed within the CRM system.
-
-### Features
-
-* Activity Logging
-* User Actions
+* Log Activity (type: call, email, note, meeting)
+* Delete Activity
 * Timeline History
-* Activity Tracking
 
 ### Benefits
 
@@ -215,25 +183,24 @@ The Activity module records important interactions performed within the CRM syst
 
 ---
 
-# 10. Notes Module
+# 9. Reports Module
 
 ## Purpose
 
-The Notes module allows users to store additional information related to companies, contacts, leads, and deals.
+The Reports module provides analytics and visual summaries of CRM data to support business decisions.
 
 ### Features
 
-* Add Notes
-* Edit Notes
-* Delete Notes
-* Rich Text Notes
-* Module-specific Notes
+* Leads Summary (by status)
+* Deals Pipeline Summary (by stage)
+* Sales Performance (win rate, total revenue)
+* Activity Summary
 
 ### Benefits
 
-* Better record keeping
-* Improved collaboration
-* Additional customer context
+* Data-driven decision making
+* Visibility into sales performance
+* Quick identification of trends
 
 ---
 
@@ -254,17 +221,19 @@ Lead
 Deal
     │
     ▼
-Task
+Task / Activity
     │
     ▼
-Follow-up
-    │
-    ▼
-Activity
-    │
-    ▼
-Notes
+Reports
 ```
+
+---
+
+# Planned Modules (Not Yet Implemented)
+
+* Follow-up / Reminder Module
+* Standalone Notes Module (currently, notes exist only as an Activity type)
+* Task and Lead Assignment workflows (currently limited to an owner/assignee field with no assignment UI)
 
 ---
 

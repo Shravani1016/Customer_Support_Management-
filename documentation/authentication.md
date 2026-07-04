@@ -2,7 +2,7 @@
 
 ## Overview
 
-Authentication is responsible for verifying user identity and protecting access to the Customer Relationship Management (CRM) system. The application is designed to use JWT (JSON Web Token) based authentication with Access Tokens and Refresh Tokens to provide secure and efficient user sessions.
+Authentication is responsible for verifying user identity and protecting access to the Customer Relationship Management (CRM) system. The application uses JWT (JSON Web Token) based authentication with Access Tokens and Refresh Tokens to provide secure and efficient user sessions.
 
 ---
 
@@ -12,7 +12,7 @@ Authentication is responsible for verifying user identity and protecting access 
 User
   │
   ▼
-Login
+Register / Login
   │
   ▼
 Backend verifies credentials
@@ -31,17 +31,33 @@ Access Granted
 
 # Authentication Features
 
-The CRM system is designed to support the following authentication features:
+The CRM system currently supports the following authentication features:
 
+- User Registration
 - User Login
-- User Logout
-- Forgot Password
-- Reset Password
-- Change Password
-- JWT Access Token
-- Refresh Token
+- User Logout (revokes refresh token)
+- Get Current User (`/api/auth/me`)
+- JWT Access Token (30 minute expiry)
+- Refresh Token (7 day expiry)
 - Protected Routes
 - Role-Based Authorization
+
+---
+
+# Register
+
+## Purpose
+
+Allows a new user to be created in the CRM system.
+
+### Process
+
+1. User submits email, full name, password, and role.
+2. Backend checks the email isn't already registered.
+3. Password is hashed before storage.
+4. User record is created and returned (without the password).
+
+**Endpoint:** `POST /api/auth/register`
 
 ---
 
@@ -54,9 +70,28 @@ Allows registered users to securely access the CRM system.
 ### Process
 
 1. User enters email and password.
-2. Backend validates the credentials.
-3. JWT Access Token and Refresh Token are generated.
-4. User is redirected to the dashboard.
+2. Backend validates the credentials against the stored password hash.
+3. A JWT Access Token and a Refresh Token are generated.
+4. The Refresh Token is stored on the user's record in the database.
+5. Both tokens are returned to the client.
+
+**Endpoint:** `POST /api/auth/login`
+
+---
+
+# Refresh
+
+## Purpose
+
+Issues a new Access Token without requiring the user to log in again.
+
+### Process
+
+1. Client sends the stored Refresh Token.
+2. Backend verifies the token is valid, unexpired, and matches what's stored for the user.
+3. A new Access Token (and rotated Refresh Token) is issued.
+
+**Endpoint:** `POST /api/auth/refresh`
 
 ---
 
@@ -64,54 +99,24 @@ Allows registered users to securely access the CRM system.
 
 ## Purpose
 
-Ends the user's authenticated session.
+Ends the user's authenticated session and revokes their refresh token.
 
 ### Process
 
-- Remove stored authentication tokens.
-- Redirect the user to the login page.
+- The user's stored Refresh Token is cleared from the database.
+- The client removes its locally stored tokens.
+
+**Endpoint:** `POST /api/auth/logout`
 
 ---
 
-# Forgot Password
+# Get Current User
 
 ## Purpose
 
-Allows users to request a password reset if they forget their password.
+Returns the profile of the currently authenticated user.
 
-### Process
-
-1. User enters their registered email.
-2. Password reset request is generated.
-3. User can reset the password after verification.
-
----
-
-# Reset Password
-
-## Purpose
-
-Allows users to create a new password after successful verification.
-
-### Process
-
-- Validate the reset request.
-- Accept the new password.
-- Update the user's credentials securely.
-
----
-
-# Change Password
-
-## Purpose
-
-Allows authenticated users to update their existing password.
-
-### Process
-
-1. Verify current password.
-2. Validate the new password.
-3. Save the updated password securely.
+**Endpoint:** `GET /api/auth/me`
 
 ---
 
@@ -121,11 +126,11 @@ The CRM system uses JSON Web Tokens (JWT) for secure authentication.
 
 ## Access Token
 
-The Access Token is sent with every protected API request and is used to verify the user's identity.
+The Access Token is sent with every protected API request (as a Bearer token) and is used to verify the user's identity. It expires after 30 minutes.
 
 ## Refresh Token
 
-The Refresh Token is used to generate a new Access Token when the current Access Token expires without requiring the user to log in again.
+The Refresh Token is used to generate a new Access Token when the current Access Token expires, without requiring the user to log in again. It expires after 7 days and is stored server-side so it can be revoked on logout.
 
 ---
 
@@ -136,62 +141,61 @@ Protected routes ensure that only authenticated users can access restricted page
 Examples include:
 
 - Dashboard
-- Companies
-- Contacts
 - Leads
+- Contacts
+- Companies
 - Deals
 - Tasks
-- Follow-ups
+- Activities
+- Reports
 
 ---
 
 # Role-Based Authorization
 
-The CRM system supports role-based access control (RBAC).
+The CRM system supports role-based access control (RBAC) via the `RoleEnum`.
 
-Example roles include:
+Roles:
 
-- Administrator
-- Manager
-- Sales Executive
-- Support Executive
+- `admin` — Full access to everything
+- `manager` — Can manage team data
+- `sales_rep` — Can only access own data
 
-Each role is granted permissions based on business requirements.
+Each role is granted permissions based on business requirements, enforced via the `require_role()` dependency on relevant endpoints.
 
 ---
 
 # Password Security
 
-Passwords are designed to be stored securely using hashing techniques.
+Passwords are stored securely using hashing.
 
 Security practices include:
 
-- Password hashing
-- Strong password validation
-- Secure password updates
-- Protected password reset process
+- Password hashing (bcrypt via Passlib)
+- Secrets and algorithm configured via environment variables
 
 ---
 
 # Security Best Practices
 
-The authentication system is designed following modern security practices:
+The authentication system follows these practices:
 
 - JWT Authentication
-- Access Token & Refresh Token
+- Access Token & Refresh Token with rotation
+- Server-side refresh token revocation on logout
 - Protected Routes
 - Role-Based Authorization
 - Secure Password Storage
-- Input Validation
-- Exception Handling
 - Environment Variables for Secret Keys
 
 ---
 
 # Future Enhancements
 
-The authentication module can be extended with additional security features, including:
+The authentication module could be extended with additional features not yet implemented, including:
 
+- Forgot Password / Reset Password flow
+- Change Password (while logged in)
 - Multi-Factor Authentication (MFA)
 - Single Sign-On (SSO)
 - OAuth Integration
@@ -202,4 +206,4 @@ The authentication module can be extended with additional security features, inc
 
 # Conclusion
 
-The authentication module provides a secure foundation for the CRM system by verifying user identities, protecting sensitive resources, and enforcing role-based access control. The use of JWT, protected routes, and secure password management supports a reliable and scalable authentication process.
+The authentication module provides a secure foundation for the CRM system by verifying user identities, protecting sensitive resources, and enforcing role-based access control. The current implementation covers registration, login, token refresh, logout, and role-based authorization, with further security features planned for the future.

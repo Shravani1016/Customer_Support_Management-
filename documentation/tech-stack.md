@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Customer Relationship Management (CRM) system is planned to be developed using a modern full-stack technology stack. The selected technologies provide high performance, scalability, maintainability, and security while supporting efficient team collaboration and future enhancements.
+The Customer Relationship Management (CRM) system is built using a modern full-stack technology stack. The selected technologies provide high performance, scalability, maintainability, and security while supporting efficient team collaboration and future enhancements.
 
 ---
 
@@ -12,7 +12,7 @@ The Customer Relationship Management (CRM) system is planned to be developed usi
 |----------|------------|---------|
 | Frontend | Next.js 15 (App Router) | Build the user interface and routing |
 | Language | TypeScript | Static typing and better code quality |
-| UI Framework | Bootstrap / Tailwind CSS | Responsive and modern user interface |
+| UI Framework | Tailwind CSS | Responsive and modern user interface |
 | Backend | Python FastAPI | Build high-performance REST APIs |
 | Database | PostgreSQL | Store application data |
 | ORM | SQLAlchemy | Interact with the database using Python objects |
@@ -28,7 +28,7 @@ The Customer Relationship Management (CRM) system is planned to be developed usi
 
 ## Next.js 15 (App Router)
 
-Next.js is planned to be used for developing the frontend of the CRM application.
+Next.js is used for developing the frontend of the CRM application.
 
 ### Why Next.js?
 
@@ -52,9 +52,9 @@ TypeScript improves JavaScript by adding static typing, making the code easier t
 
 ---
 
-## Bootstrap / Tailwind CSS
+## Tailwind CSS
 
-Bootstrap and Tailwind CSS will be used to create a responsive and user-friendly interface.
+Tailwind CSS is used to create a responsive and user-friendly interface across all pages.
 
 ### Benefits
 
@@ -69,7 +69,7 @@ Bootstrap and Tailwind CSS will be used to create a responsive and user-friendly
 
 ## Python FastAPI
 
-FastAPI is selected for building secure and high-performance REST APIs.
+FastAPI is used for building secure and high-performance REST APIs.
 
 ### Features
 
@@ -83,7 +83,7 @@ FastAPI is selected for building secure and high-performance REST APIs.
 
 ## SQLAlchemy
 
-SQLAlchemy will be used as the Object Relational Mapper (ORM) for database operations.
+SQLAlchemy is used as the Object Relational Mapper (ORM) for database operations.
 
 ### Benefits
 
@@ -96,7 +96,7 @@ SQLAlchemy will be used as the Object Relational Mapper (ORM) for database opera
 
 ## Alembic
 
-Alembic will manage database migrations and schema versioning.
+Alembic manages database migrations and schema versioning.
 
 ### Benefits
 
@@ -123,7 +123,7 @@ Pydantic validates incoming and outgoing API data.
 
 ## PostgreSQL
 
-PostgreSQL is selected as the relational database for storing CRM information.
+PostgreSQL is used as the relational database for storing CRM information.
 
 ### Features
 
@@ -139,13 +139,13 @@ PostgreSQL is selected as the relational database for storing CRM information.
 
 ## JWT Authentication
 
-JWT (JSON Web Token) will be used to secure API communication.
+JWT (JSON Web Token) is used to secure API communication.
 
 ### Features
 
 - Login Authentication
-- Access Token
-- Refresh Token
+- Access Token (30 minute expiry)
+- Refresh Token (7 day expiry, server-side revocation)
 - Protected Routes
 - Role-Based Authorization
 
@@ -170,7 +170,7 @@ FastAPI automatically generates interactive API documentation using Swagger/Open
 
 ## Git
 
-Git will be used to track changes during development.
+Git is used to track changes during development.
 
 ### Features
 
@@ -182,7 +182,7 @@ Git will be used to track changes during development.
 
 ## GitHub
 
-GitHub will be used for repository hosting and team collaboration.
+GitHub is used for repository hosting and team collaboration.
 
 ### Features
 
@@ -190,14 +190,13 @@ GitHub will be used for repository hosting and team collaboration.
 - Pull Requests
 - Code Reviews
 - Issue Tracking
-- Daily Commits
 - Branch Management
 
 ---
 
 # Why This Technology Stack?
 
-The selected technologies are chosen to support the project requirements by providing:
+The selected technologies support the project requirements by providing:
 
 - High Performance
 - Scalable Architecture
@@ -213,4 +212,4 @@ The selected technologies are chosen to support the project requirements by prov
 
 # Conclusion
 
-The proposed technology stack provides a strong foundation for developing a secure, scalable, and maintainable Customer Relationship Management (CRM) system. It aligns with the project requirements and supports efficient development using modern web technologies.
+The technology stack provides a strong foundation for the Customer Relationship Management (CRM) system, delivering a secure, scalable, and maintainable application built using modern web technologies.

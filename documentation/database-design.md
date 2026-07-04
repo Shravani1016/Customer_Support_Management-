@@ -250,9 +250,11 @@ Indexed columns for frequently searched fields:
 
 ---
 
-# Data Import & Export
+# Data Export
 
-The system supports CSV-based import and export for Leads, Contacts, and Companies, enabling bulk data operations without requiring schema changes — export/import operates directly on existing tables.
+The system supports CSV export for Leads, Contacts, and Companies via dedicated `/export` endpoints on each router (e.g. `GET /api/leads/export`), returning a streamed CSV file generated directly from the current table data.
+
+CSV import is not yet implemented — see Future Enhancements.
 
 ---
 
@@ -269,6 +271,7 @@ The Entity Relationship (ER) Diagram illustrates the relationships between all C
 
 The database design can be extended to support:
 
+- CSV Import for Leads, Contacts, and Companies
 - Follow-up / Reminder Tracking
 - Customer Support Tickets
 - Email History

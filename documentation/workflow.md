@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Customer Relationship Management (CRM) workflow describes how customer information moves through the system from the initial company record to the completion of sales and follow-up activities. The workflow helps organize business processes and ensures efficient customer relationship management.
+The Customer Relationship Management (CRM) workflow describes how customer information moves through the system from the initial company record to the completion of sales and related activities. The workflow helps organize business processes and ensures efficient customer relationship management.
 
 ---
 
@@ -21,16 +21,10 @@ Lead
 Deal
    │
    ▼
-Task
+Task / Activity
    │
    ▼
-Follow-up
-   │
-   ▼
-Activity
-   │
-   ▼
-Dashboard Analytics
+Dashboard & Reports Analytics
 ```
 
 ---
@@ -45,11 +39,9 @@ The process begins by adding a company to the CRM system.
 
 - Company Name
 - Industry
-- Email
 - Phone Number
 - Address
 - Website
-- Status
 
 ### Outcome
 
@@ -59,19 +51,18 @@ The company becomes available for managing contacts and business opportunities.
 
 ## 2. Contact Management
 
-Contacts belonging to the company are added.
+Contacts belonging to a company are added.
 
 ### Information Stored
 
-- Contact Name
+- First Name / Last Name
 - Email
 - Phone Number
-- Designation
 - Company Association
 
 ### Outcome
 
-The organization now has individual customer contacts linked to the company.
+The organization now has individual customer contacts linked to a company.
 
 ---
 
@@ -79,14 +70,13 @@ The organization now has individual customer contacts linked to the company.
 
 Potential business opportunities are recorded as leads.
 
-### Lead Status Examples
+### Lead Status Values
 
 - New
 - Contacted
 - Qualified
-- Proposal Sent
-- Won
 - Lost
+- Converted
 
 ### Outcome
 
@@ -96,34 +86,32 @@ Sales teams can monitor potential customers and update lead progress.
 
 ## 4. Deal Pipeline
 
-Qualified leads are converted into deals.
+Business opportunities are tracked as deals through the sales pipeline.
 
 ### Deal Information
 
-- Deal Name
+- Title
 - Deal Value
 - Expected Closing Date
-- Deal Stage
-- Assigned User
+- Deal Stage (Prospecting, Proposal, Negotiation, Closed Won, Closed Lost)
+- Owner (set automatically to the creating user)
 
 ### Outcome
 
-The sales pipeline provides visibility into ongoing business opportunities.
+The Kanban-style sales pipeline provides visibility into ongoing business opportunities.
 
 ---
 
 ## 5. Task Management
 
-Tasks are created for sales representatives or support staff.
+Tasks are created to organize follow-up work related to leads, contacts, or deals.
 
 ### Task Details
 
 - Title
 - Description
-- Priority
-- Due Date
-- Assigned User
-- Status
+- Priority (Low, Medium, High)
+- Completion Status
 
 ### Outcome
 
@@ -131,59 +119,47 @@ Tasks help organize daily work and improve productivity.
 
 ---
 
-## 6. Follow-up Management
+## 6. Activity Tracking
 
-Follow-ups ensure continuous communication with customers.
+Users can manually log interactions related to a lead, contact, or deal.
 
-### Follow-up Details
+### Activity Types
 
-- Follow-up Date
-- Communication Type
-- Notes
-- Status
+- Call
+- Email
+- Note
+- Meeting
 
-### Outcome
-
-Regular follow-ups improve customer relationships and reduce missed opportunities.
-
----
-
-## 7. Activity Tracking
-
-The CRM records important user activities.
-
-### Examples
-
-- Login
-- Company Created
-- Contact Updated
-- Lead Assigned
-- Deal Closed
-- Task Completed
+> Activities are manually logged by the user (via the "Log Activity" form) — the system does not currently generate an automatic audit trail of every action (e.g. logins, field edits) performed in the CRM.
 
 ### Outcome
 
-Activity history improves transparency and auditing.
+Activity history gives visibility into past interactions with a customer.
 
 ---
 
-## 8. Dashboard Analytics
+## 7. Dashboard & Reports Analytics
 
-The dashboard summarizes important business information.
+The dashboard and reports pages summarize important business information.
 
 ### Dashboard Metrics
 
-- Total Companies
+- Total Leads
 - Total Contacts
-- Active Leads
-- Open Deals
-- Pending Tasks
-- Upcoming Follow-ups
-- Recent Activities
+- Total Companies
+- Active Deals
+- Performance Overview (weekly activity chart)
+
+### Reports Metrics
+
+- Leads by Status (pie chart)
+- Deals by Stage (bar chart)
+- Total Revenue / Pipeline Value / Win Rate
+- Revenue Trend (Closed Won)
 
 ### Outcome
 
-Managers receive a real-time overview of CRM performance.
+Managers receive an overview of CRM performance and sales trends.
 
 ---
 
@@ -193,9 +169,8 @@ The CRM workflow provides:
 
 - Centralized customer information
 - Organized sales process
-- Better communication
 - Improved task management
-- Efficient follow-up tracking
+- Visibility into activity history
 - Business insights through analytics
 - Secure and structured data management
 
@@ -205,15 +180,18 @@ The CRM workflow provides:
 
 The workflow is designed to support future improvements, including:
 
+- Follow-up / Reminder tracking
+- Task and lead assignment workflows (beyond the current owner field)
+- Automatic activity/audit logging
 - Email notifications
 - Calendar integration
 - AI-powered lead scoring
 - Workflow automation
-- Reporting and data export
+- CSV import (export already exists for Leads, Contacts, and Companies)
 - Third-party integrations
 
 ---
 
 # Conclusion
 
-The CRM workflow provides a structured process for managing customer relationships from company registration to sales completion and follow-up activities. This organized workflow helps improve productivity, customer engagement, and overall business efficiency.
+The CRM workflow provides a structured process for managing customer relationships from company registration through the sales pipeline to task and activity tracking. This organized workflow helps improve productivity, customer engagement, and overall business efficiency.

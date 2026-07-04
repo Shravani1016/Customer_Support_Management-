@@ -20,7 +20,7 @@ The application is built using **Next.js** for the frontend, **FastAPI** for the
                                   ▼
                     ┌──────────────────────────┐
                     │        Frontend          │
-                    │   Next.js 16 + React     │
+                    │   Next.js 15 + React     │
                     │      TypeScript          │
                     └─────────────┬────────────┘
                                   │
@@ -52,19 +52,17 @@ The presentation layer is responsible for providing an interactive and responsiv
 
 ### Responsibilities
 
-- Responsive Dashboard with live stats and performance charts
-- Dark / Light Mode Theme Toggle
+- Responsive Dashboard
 - API Integration
-- Form Validation (including phone number length validation)
+- Form Validation
 - Loading & Error States
 - Toast Notifications
 - Reusable Components
 - Search & Filters
-- Kanban Drag-and-Drop (Deals Pipeline)
 
 ### Technologies
 
-* Next.js 16 (App Router)
+* Next.js 15 (App Router)
 * React
 * TypeScript
 * Tailwind CSS
@@ -83,10 +81,8 @@ The backend contains the business logic and exposes RESTful APIs that process cl
 * Business Logic
 * Request Validation
 * Exception Handling
-* Structured Logging
+* Logging
 * API Documentation
-* Analytics Aggregation (Reports)
-* CSV Import/Export
 
 ### Backend Services
 
@@ -95,7 +91,7 @@ The backend contains the business logic and exposes RESTful APIs that process cl
 - Alembic Database Migrations
 - Pydantic Data Validation
 - Exception Handling
-- Structured Logging (console + `app.log`)
+- Logging
 - Environment Variable Management
 
 ### Technologies
@@ -122,6 +118,7 @@ The data layer stores all application data securely and efficiently.
 
 ### Responsibilities
 
+* Store Users
 * Store Companies
 * Store Contacts
 * Store Leads
@@ -148,7 +145,7 @@ Authentication process:
 3. JWT Access Token and Refresh Token are generated.
 4. Access Token is sent with every protected API request.
 5. Backend validates the token before processing the request.
-6. If the Access Token expires, a Refresh Token is used to generate a new Access Token.
+6. If the Access Token expires, the Refresh Token is used to generate a new Access Token.
 
 ---
 
@@ -171,20 +168,15 @@ A typical request follows these steps:
 
 The CRM system is organized into the following functional modules:
 
-**Implemented:**
 - Authentication
 - Dashboard
-- Companies
-- Contacts
 - Leads
-- Deals Pipeline (Kanban)
+- Contacts
+- Companies
+- Deals Pipeline
 - Tasks
-- Activity Management (calls, emails, notes, meetings)
+- Activities (calls, emails, notes, meetings)
 - Reports & Analytics
-- CSV Import/Export
-
-**Planned:**
-- Follow-up Management
 
 ---
 
@@ -214,16 +206,13 @@ Benefits include:
 - Automatic API documentation
 - Faster backend development
 
----
-
 # Scalability
 
 The architecture is designed to support future enhancements, including:
 
-* Follow-up Management
+* Additional CRM modules
 * AI-powered automation
 * Email notifications
-* Advanced/custom reporting
 * Third-party integrations
 * Microservices migration (if required)
 
