@@ -49,7 +49,7 @@ A full-stack CRM for managing leads, contacts, companies, deals, tasks, and acti
 - **Reports & Analytics** — Leads by status (pie), deals by stage (bar), revenue trend
 - **UI Polish** — Toast notifications, loading skeletons/spinners, phone number validation (10 digits), consistent dark mode across all pages
 - **Structured Logging** — Request logs + auth event logs (login, register, failed attempts)
-- **CSV Import/Export** — Import leads, contacts, and companies from CSV files, and export CRM data for backup or reporting.
+- **CSV Export** — Export leads, contacts, and companies to CSV for backup or reporting. (CSV import planned — not yet implemented.)
 
 ---
 
@@ -74,8 +74,7 @@ Customer_Support_Management/
 │   │   │   └── reports.py
 │   │   ├── schemas/                 # Pydantic request/response schemas
 │   │   ├── utils/                   # Authentication helpers
-│   │   │   ├── hashing.py
-│   │   │   └── jwt.py
+│   │   │   └── auth.py
 │   │   ├── config.py
 │   │   ├── database.py
 │   │   ├── dependencies.py
