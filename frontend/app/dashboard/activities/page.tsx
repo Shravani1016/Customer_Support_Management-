@@ -110,20 +110,20 @@ export default function ActivitiesPage() {
     <div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
           Activities
         </h1>
 
         <div className="flex gap-2">
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+            className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm font-medium transition"
           >
             + Log Activity
           </button>
           <button
             onClick={exportCSV}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium transition"
+            className="border border-indigo-500 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 px-4 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-sm font-medium transition"
           >
             Export CSV
           </button>
@@ -131,7 +131,7 @@ export default function ActivitiesPage() {
       </div>
 
       {/* Search & Filters */}
-      <div className="bg-white border rounded-xl p-4 mb-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
           <input
@@ -139,14 +139,14 @@ export default function ActivitiesPage() {
             placeholder="🔍 Search activities..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
 
           {/* Filter */}
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm text-black"
+            className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="all">All Types</option>
             <option value="call">📞 Call</option>
@@ -161,7 +161,7 @@ export default function ActivitiesPage() {
             onChange={(e) =>
               setSortOrder(e.target.value as 'latest' | 'oldest')
             }
-            className="border rounded-lg px-3 py-2 text-sm text-black"
+            className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="latest">Latest First</option>
             <option value="oldest">Oldest First</option>
@@ -174,7 +174,7 @@ export default function ActivitiesPage() {
               setFilterType('all');
               setSortOrder('latest');
             }}
-            className="border rounded-lg px-4 py-2 text-sm hover:bg-gray-100 text-black"
+            className="border dark:border-gray-600 rounded-lg px-4 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-black dark:text-white transition"
           >
             Clear Filters
           </button>
@@ -183,8 +183,8 @@ export default function ActivitiesPage() {
 
       {/* Add Activity Form */}
       {showForm && (
-        <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
-          <h2 className="font-semibold text-gray-700 mb-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-6 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
+          <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">
             New Activity
           </h2>
 
@@ -194,7 +194,7 @@ export default function ActivitiesPage() {
               onChange={(e) =>
                 setForm({ ...form, type: e.target.value })
               }
-              className="border rounded-lg px-3 py-2 text-sm text-black"
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-gray-900"
             >
               <option value="call">📞 Call</option>
               <option value="email">✉️ Email</option>
@@ -209,7 +209,7 @@ export default function ActivitiesPage() {
               onChange={(e) =>
                 setForm({ ...form, note: e.target.value })
               }
-              className="border rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -217,14 +217,14 @@ export default function ActivitiesPage() {
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+              className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
 
             <button
               onClick={() => setShowForm(false)}
-              className="border border-gray-300 px-4 py-2 text-sm text-black"
+              className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-300 rounded-lg"
             >
               Cancel
             </button>
@@ -232,55 +232,60 @@ export default function ActivitiesPage() {
         </div>
       )}
 
-      {/* Activities */}
-      <div className="bg-white rounded-xl border shadow-sm">
+      {/* Activities — timeline style */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-md shadow-gray-200/50 dark:shadow-none">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
           </div>
         ) : filteredActivities.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500">
             No matching activities found.
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {filteredActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition"
-              >
+          <div className="relative px-6">
+            {/* Timeline connector line running behind the icons */}
+            <div className="absolute left-11 top-0 bottom-0 w-px bg-gray-100 dark:bg-gray-700/50" />
+
+            <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+              {filteredActivities.map((activity) => (
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${ACTIVITY_COLORS[activity.type]}`}
+                  key={activity.id}
+                  className="relative flex items-start gap-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:translate-x-0.5 transition-all rounded-lg -mx-2 px-2"
                 >
-                  {ACTIVITY_ICONS[activity.type]}
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-800 capitalize">
-                      {activity.type}
-                    </span>
-
-                    <span className="text-xs text-gray-400">
-                      {formatTime(activity.created_at)}
-                    </span>
+                  <div
+                    className={`relative z-10 w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-lg ring-4 ring-white dark:ring-gray-800 ${ACTIVITY_COLORS[activity.type]}`}
+                  >
+                    {ACTIVITY_ICONS[activity.type]}
                   </div>
 
-                  {activity.note && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      {activity.note}
-                    </p>
-                  )}
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-800 dark:text-gray-100 capitalize">
+                        {activity.type}
+                      </span>
 
-                <button
-                  onClick={() => handleDelete(activity.id)}
-                  className="text-red-500 hover:text-red-700 text-xs"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {formatTime(activity.created_at)}
+                      </span>
+                    </div>
+
+                    {activity.note && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {activity.note}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => handleDelete(activity.id)}
+                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition shrink-0"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

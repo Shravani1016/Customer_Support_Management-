@@ -10,6 +10,11 @@ const priorityColors: Record<string, string> = {
   high: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
 };
 
+const statusColors: Record<string, string> = {
+  done: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+  pending: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+};
+
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -113,17 +118,17 @@ export default function TasksPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">Tasks</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+            className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm font-medium transition"
           >
             + Add Task
           </button>
           <button
             onClick={exportCSV}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium transition"
+            className="border border-indigo-500 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 px-4 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-sm font-medium transition"
           >
             Export CSV
           </button>
@@ -131,25 +136,25 @@ export default function TasksPage() {
       </div>
 
       {showForm && (
-        <div className="bg-white border rounded-lg p-4 mb-6">
-          <h2 className="font-semibold mb-3 text-slate-900">New Task</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-lg p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
+          <h2 className="font-semibold mb-3 text-slate-900 dark:text-gray-100">New Task</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
             <input
               placeholder="Title *"
               value={form.title}
               onChange={e => setForm({ ...form, title: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
             />
             <input
               placeholder="Description"
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
             />
             <select
               value={form.priority}
               onChange={e => setForm({ ...form, priority: e.target.value })}
-              className="border rounded-lg px-3 py-2 text-sm text-black"
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-gray-900"
             >
               {['low', 'medium', 'high'].map(p => (
                 <option key={p} value={p}>{p}</option>
@@ -160,18 +165,18 @@ export default function TasksPage() {
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+              className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-gray-500 px-4 py-2 text-sm">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="text-gray-500 dark:text-gray-400 px-4 py-2 text-sm">Cancel</button>
           </div>
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
         </div>
       ) : (
         <>
@@ -187,17 +192,17 @@ export default function TasksPage() {
                 placeholder="Search by title or description..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-10 w-full border rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 hover:bg-gray-100/50 transition-colors"
+                className="pl-10 pr-4 h-10 w-full border dark:border-gray-600 rounded-lg text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100/50 dark:hover:bg-gray-900/70 transition-colors"
               />
             </div>
 
             <div className="flex gap-3 items-center">
               <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-gray-500 uppercase">Priority:</label>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Priority:</label>
                 <select
                   value={priorityFilter}
                   onChange={e => setPriorityFilter(e.target.value)}
-                  className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                 >
                   <option value="all">All Priorities</option>
                   <option value="low">Low</option>
@@ -207,11 +212,11 @@ export default function TasksPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-gray-500 uppercase">Status:</label>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status:</label>
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                 >
                   <option value="all">All Statuses</option>
                   <option value="done">Done</option>
@@ -220,22 +225,22 @@ export default function TasksPage() {
               </div>
 
               {(searchQuery || priorityFilter !== 'all' || statusFilter !== 'all') && (
-                <button onClick={handleClearFilters} className="text-sm text-blue-600 hover:underline">
+                <button onClick={handleClearFilters} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
                   Clear Filters
                 </button>
               )}
             </div>
           </div>
 
-          <div className="text-sm text-gray-500 mb-2">
+          <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
             {tasks.length === 0
               ? 'No tasks available'
               : `Showing ${filteredTasks.length} of ${tasks.length} tasks`}
           </div>
 
-          <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-lg overflow-hidden shadow-md shadow-gray-200/50 dark:shadow-none">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-600 text-left">
+              <thead className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300 text-left">
                 <tr>
                   {['Done', 'Title', 'Description', 'Priority', 'Status', 'Actions'].map(h => (
                     <th key={h} className="p-3 font-medium">{h}</th>
@@ -244,31 +249,33 @@ export default function TasksPage() {
               </thead>
               <tbody>
                 {tasks.length === 0 ? (
-                  <tr><td colSpan={6} className="p-6 text-center text-gray-400">No tasks yet.</td></tr>
+                  <tr><td colSpan={6} className="p-6 text-center text-gray-400 dark:text-gray-500">No tasks yet.</td></tr>
                 ) : filteredTasks.length === 0 ? (
-                  <tr><td colSpan={6} className="p-6 text-center text-gray-400">No tasks match your search criteria.</td></tr>
+                  <tr><td colSpan={6} className="p-6 text-center text-gray-400 dark:text-gray-500">No tasks match your search criteria.</td></tr>
                 ) : (
                   filteredTasks.map(task => (
-                    <tr key={task.id} className="border-t hover:bg-gray-50">
+                    <tr key={task.id} className="border-t dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                       <td className="p-3">
                         <input
                           type="checkbox"
                           checked={task.is_completed}
                           onChange={() => handleComplete(task)}
-                          className="w-4 h-4"
+                          className="w-4 h-4 accent-indigo-600"
                         />
                       </td>
-                      <td className={`p-3 font-medium ${task.is_completed ? 'line-through text-gray-400' : 'text-slate-900'}`}>
+                      <td className={`p-3 font-medium ${task.is_completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-slate-900 dark:text-gray-100'}`}>
                         {task.title}
                       </td>
-                      <td className="p-3 text-gray-600">{task.description || '—'}</td>
+                      <td className="p-3 text-gray-600 dark:text-gray-400">{task.description || '—'}</td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
                           {task.priority}
                         </span>
                       </td>
                       <td className="p-3">
-                        {task.is_completed ? '✅ Done' : '⏳ Pending'}
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[task.is_completed ? 'done' : 'pending']}`}>
+                          {task.is_completed ? 'Done' : 'Pending'}
+                        </span>
                       </td>
                       <td className="p-3">
                         <button

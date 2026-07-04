@@ -100,38 +100,44 @@ export default function CompaniesPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Companies</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Companies</h1>
         <div className="flex gap-2">
-          <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm transition"
+          >
             + Add Company
           </button>
-          <button onClick={exportCSV} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+          <button
+            onClick={exportCSV}
+            className="border border-indigo-500 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 px-4 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-sm transition"
+          >
             Export CSV
           </button>
         </div>
       </div>
 
       {showForm && (
-        <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
-          <h2 className="font-semibold text-gray-700 mb-4">New Company</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-6 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
+          <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">New Company</h2>
           <div className="grid grid-cols-2 gap-4">
 <input
   placeholder="Company Name *"
   value={form.name}
   onChange={e => setForm({ ...form, name: e.target.value })}
-  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
 />
 <input
   placeholder="Industry"
   value={form.industry}
   onChange={e => setForm({ ...form, industry: e.target.value })}
-  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
 />
 <input
   placeholder="Website"
   value={form.website}
   onChange={e => setForm({ ...form, website: e.target.value })}
-  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
 />
 <input
   placeholder="Phone (10 digits)"
@@ -139,30 +145,30 @@ export default function CompaniesPage() {
   maxLength={10}
   value={form.phone}
   onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
-  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
 />
           </div>
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+              className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-gray-500 px-4 py-2 text-sm">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="text-gray-500 dark:text-gray-400 px-4 py-2 text-sm">Cancel</button>
           </div>
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
         </div>
       ) : (
         <>
           {/* Search and Filters Bar */}
-          <div className="bg-white border rounded-xl p-4 mb-6 shadow-sm flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
             <div className="relative w-full md:w-96 shrink-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -174,17 +180,17 @@ export default function CompaniesPage() {
                 placeholder="Search by name, website, or phone..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-10 w-full border rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-gray-100/50 transition-colors"
+                className="pl-10 pr-4 h-10 w-full border dark:border-gray-600 rounded-lg text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 dark:bg-gray-900 hover:bg-gray-100/50 dark:hover:bg-gray-900/70 transition-colors"
               />
             </div>
 
             <div className="flex flex-wrap items-center gap-4 justify-start md:justify-end">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Industry:</span>
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Industry:</span>
                 <select
                   value={industryFilter}
                   onChange={e => setIndustryFilter(e.target.value)}
-                  className="h-10 border rounded-lg px-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer min-w-32.5 max-w-40"
+                  className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer min-w-32.5 max-w-40"
                 >
                   <option value="all">All Industries</option>
                   {uniqueIndustries.map(industry => (
@@ -198,7 +204,7 @@ export default function CompaniesPage() {
               {(searchQuery || industryFilter !== 'all') && (
                 <button
                   onClick={handleClearFilters}
-                  className="h-10 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors px-2 hover:underline cursor-pointer flex items-center"
+                  className="h-10 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors px-2 hover:underline cursor-pointer flex items-center"
                 >
                   Clear Filters
                 </button>
@@ -208,34 +214,34 @@ export default function CompaniesPage() {
 
           {/* Filter Stats */}
           <div className="flex justify-between items-center px-1 mb-2">
-            <span className="text-xs text-gray-500 font-medium">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
               {companies.length === 0
                 ? 'No companies available'
                 : `Showing ${filteredCompanies.length} of ${companies.length} companies`}
             </span>
           </div>
 
-          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-md shadow-gray-200/50 dark:shadow-none overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-600 border-b">
+              <thead className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300 border-b dark:border-gray-700">
                 <tr>
                   {['Name', 'Industry', 'Website', 'Phone', 'Actions'].map(h => (
                     <th key={h} className="text-left px-4 py-3 font-medium">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {companies.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-8 text-gray-400">No companies yet.</td></tr>
+                  <tr><td colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-500">No companies yet.</td></tr>
                 ) : filteredCompanies.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-8 text-gray-400">No companies match your search criteria.</td></tr>
+                  <tr><td colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-500">No companies match your search criteria.</td></tr>
                 ) : (
                   filteredCompanies.map(company => (
-                    <tr key={company.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-800">{company.name}</td>
-                      <td className="px-4 py-3 text-gray-500">{company.industry || '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{company.website || '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{company.phone || '—'}</td>
+                    <tr key={company.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{company.name}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{company.industry || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{company.website || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{company.phone || '—'}</td>
                       <td className="px-4 py-3">
                         <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition">Delete</button>
                       </td>

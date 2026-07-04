@@ -27,18 +27,18 @@ export default function KanbanColumn({ id, label, color, deals }: Props) {
           {deals.length}
         </span>
       </div>
-      <div className="text-xs text-gray-500 px-4 py-2 bg-gray-50">
+      <div className="text-xs text-gray-500 dark:text-gray-400 px-4 py-2 bg-gray-50 dark:bg-gray-800/60">
         ${totalValue.toLocaleString()}
       </div>
       <div
         ref={setNodeRef}
         className={`min-h-[400px] p-3 rounded-b-lg transition-colors ${
-          isOver ? 'bg-blue-50' : 'bg-gray-100'
+          isOver ? 'bg-indigo-50 dark:bg-indigo-500/10' : 'bg-gray-100 dark:bg-gray-900/40'
         }`}
       >
         <SortableContext items={deals.map(d => d.id)} strategy={verticalListSortingStrategy}>
           {deals.map((deal) => (
-            <DealCard key={deal.id} deal={deal} />
+            <DealCard key={deal.id} deal={deal} color={color} />
           ))}
         </SortableContext>
       </div>
