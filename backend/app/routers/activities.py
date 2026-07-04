@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
+import csv
+import io
 from app.database import get_db
 from app.models.models import Activity, Task
 from app.schemas.activity import ActivityCreate, ActivityResponse
@@ -30,6 +33,40 @@ Returns a list of all activities ordered by most recent first.
 )
 def get_activities(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return db.query(Activity).filter(Activity.is_deleted == False).order_by(Activity.created_at.desc()).all()
+
+
+@router.get(
+    "/api/activities/export",
+    summary="Export activities as CSV",
+    description="Downloads all non-deleted activities as a CSV file.",
+)
+def export_activities_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    activities = db.query(Activity).filter(Activity.is_deleted == False).order_by(Activity.created_at.desc()).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header row
+    writer.writerow(["ID", "Type", "Note", "Lead ID", "Contact ID", "Deal ID", "Created At"])
+
+    # Write data rows
+    for act in activities:
+        writer.writerow([
+            act.id,
+            act.type.value if hasattr(act.type, "value") else str(act.type),
+            act.note or "",
+            act.lead_id or "",
+            act.contact_id or "",
+            act.deal_id or "",
+            act.created_at.strftime("%Y-%m-%d %H:%M:%S") if act.created_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=activities.csv"},
+    )
 
 
 @router.post(

@@ -65,6 +65,22 @@ export default function LeadsPage() {
     }
   };
 
+  const exportCSV = async () => {
+    try {
+      const res = await api.get('/api/leads/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'leads.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('CSV exported');
+    } catch {
+      toast.error('Failed to export CSV');
+    }
+  };
+
   const handleClearFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
@@ -100,9 +116,14 @@ export default function LeadsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Leads</h1>
-        <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-          + Add Lead
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            + Add Lead
+          </button>
+          <button onClick={exportCSV} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {showForm && (

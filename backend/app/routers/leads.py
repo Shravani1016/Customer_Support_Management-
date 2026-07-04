@@ -1,5 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+import csv
+import io
 from sqlalchemy.sql import func
 from typing import List
 
@@ -35,6 +38,40 @@ def create_lead(lead: LeadCreate, db: Session = Depends(get_db), current_user: U
     db.commit()
     db.refresh(db_lead)
     return db_lead
+
+
+@router.get(
+    "/export",
+    summary="Export leads as CSV",
+    description="Downloads all non-deleted leads as a CSV file.",
+)
+def export_leads_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    leads = db.query(Lead).filter(Lead.is_deleted == False).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header row
+    writer.writerow(["ID", "Name", "Email", "Phone", "Status", "Source", "Created At"])
+
+    # Write data rows
+    for lead in leads:
+        writer.writerow([
+            lead.id,
+            lead.name,
+            lead.email or "",
+            lead.phone or "",
+            lead.status.value if lead.status else "",
+            lead.source or "",
+            lead.created_at.strftime("%Y-%m-%d %H:%M:%S") if lead.created_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=leads.csv"},
+    )
 
 
 @router.get(
@@ -84,4 +121,5 @@ def delete_lead(lead_id: int, db: Session = Depends(get_db), current_user: User 
     lead.deleted_at = func.now()
     lead.updated_by = current_user.id
     db.commit()
-    return None
+
+

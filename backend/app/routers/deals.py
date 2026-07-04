@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 from pydantic import BaseModel
+import csv
+import io
 from app.database import get_db
 from app.models.models import Deal, DealStageEnum
 from app.schemas.deal import DealCreate, DealUpdate, DealResponse
@@ -58,6 +61,39 @@ def create_deal(deal: DealCreate, db: Session = Depends(get_db), current_user: U
     db.commit()
     db.refresh(db_deal)
     return db_deal
+
+
+@router.get(
+    "/export",
+    summary="Export deals as CSV",
+    description="Downloads all non-deleted deals as a CSV file.",
+)
+def export_deals_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    deals = db.query(Deal).filter(Deal.is_deleted == False).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header row
+    writer.writerow(["ID", "Title", "Value ($)", "Stage", "Expected Close Date", "Created At"])
+
+    # Write data rows
+    for deal in deals:
+        writer.writerow([
+            deal.id,
+            deal.title,
+            deal.value,
+            deal.stage.value if deal.stage else "",
+            deal.expected_close_date.strftime("%Y-%m-%d") if deal.expected_close_date else "",
+            deal.created_at.strftime("%Y-%m-%d %H:%M:%S") if deal.created_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=deals.csv"},
+    )
 
 
 @router.get(
