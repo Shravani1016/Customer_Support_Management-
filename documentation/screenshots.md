@@ -35,6 +35,15 @@ Description:
 
 ---
 
+## 2a. Dashboard — Dark Mode
+Description:
+- Dark/Light Theme Toggle
+- Consistent Dark Mode Styling Across Dashboard
+**Status: ✅ Done**
+![Dashboard Dark Mode](screenshots/dashboard-dark.png)
+
+---
+
 ## 3. Lead Management
 
 Description:
@@ -134,6 +143,17 @@ Description:
 
 ---
 
+## 9a. Reports & Analytics Dashboard
+Description:
+- Leads by Status (Pie Chart)
+- Deals by Stage (Bar Chart)
+- Revenue Trend
+- Sales Performance Overview
+**Status: ✅ Done**
+![Reports](screenshots/reports.png)
+
+---
+
 ## 10. Follow-up Management
 
 Description:
@@ -146,13 +166,12 @@ Description:
 ---
 
 ## 11. Activity Logs
-
 Description:
 - User Activities
 - Recent Actions
 - Activity Timeline
-
-**Status: ⏳ Pending - Phase 6**
+**Status: ✅ Done**
+![Activities](screenshots/activities.png)
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Customer Relationship Management (CRM) system uses PostgreSQL as its primary relational database. The database is designed to efficiently store and manage customer information, sales data, tasks, and follow-up activities while maintaining data integrity and scalability.
+The Customer Relationship Management (CRM) system uses PostgreSQL as its primary relational database. The database is designed to efficiently store and manage customer information, sales data, tasks, and activity logs while maintaining data integrity and scalability.
 
 ---
 
@@ -41,14 +41,15 @@ Stores user account information.
 
 ### Fields
 
-- User ID (Primary Key)
+- ID (Primary Key)
+- Email (Unique)
 - Full Name
-- Email
-- Password Hash
-- Role
-- Status
-- Created At
-- Updated At
+- Hashed Password
+- Refresh Token
+- Role (Admin, Manager, Sales Rep)
+- Is Active
+- Created At, Updated At, Created By, Updated By
+- Is Deleted, Deleted At
 
 ---
 
@@ -58,16 +59,14 @@ Stores organization information.
 
 ### Fields
 
-- Company ID (Primary Key)
-- Company Name
+- ID (Primary Key)
+- Name
 - Industry
-- Email
-- Phone Number
 - Website
+- Phone
 - Address
-- Status
-- Created At
-- Updated At
+- Created At, Updated At, Created By, Updated By
+- Is Deleted, Deleted At
 
 ---
 
@@ -77,14 +76,14 @@ Stores individual contacts associated with companies.
 
 ### Fields
 
-- Contact ID (Primary Key)
-- Company ID (Foreign Key)
-- Name
+- ID (Primary Key)
+- Company ID (Foreign Key → Companies)
+- First Name
+- Last Name
 - Email
 - Phone
-- Designation
-- Created At
-- Updated At
+- Created At, Updated At, Created By, Updated By
+- Is Deleted, Deleted At
 
 ---
 
@@ -94,106 +93,103 @@ Stores potential sales opportunities.
 
 ### Fields
 
-- Lead ID (Primary Key)
-- Company ID (Foreign Key)
-- Contact ID (Foreign Key)
-- Lead Status
+- ID (Primary Key)
+- Owner ID (Foreign Key → Users)
+- Name
+- Email
+- Phone
+- Status (New, Contacted, Qualified, Lost, Converted)
 - Source
-- Assigned User
-- Notes
-- Created At
-- Updated At
+- Created At, Updated At, Created By, Updated By
+- Is Deleted, Deleted At
 
 ---
 
 ## Deals
 
-Stores active business opportunities.
+Stores active business opportunities in the sales pipeline.
 
 ### Fields
 
-- Deal ID (Primary Key)
-- Lead ID (Foreign Key)
-- Deal Value
-- Deal Stage
-- Expected Closing Date
-- Created At
-- Updated At
+- ID (Primary Key)
+- Contact ID (Foreign Key → Contacts)
+- Owner ID (Foreign Key → Users)
+- Title
+- Value
+- Stage (Prospecting, Proposal, Negotiation, Closed Won, Closed Lost)
+- Expected Close Date
+- Created At, Updated At, Created By, Updated By
+- Is Deleted, Deleted At
 
 ---
 
 ## Tasks
 
-Stores tasks assigned to users.
+Stores tasks assigned to users, optionally linked to a lead, contact, or deal.
 
 ### Fields
 
-- Task ID (Primary Key)
-- Assigned User
+- ID (Primary Key)
+- Assigned To ID (Foreign Key → Users)
+- Lead ID (Foreign Key → Leads, optional)
+- Contact ID (Foreign Key → Contacts, optional)
+- Deal ID (Foreign Key → Deals, optional)
 - Title
 - Description
-- Priority
+- Priority (Low, Medium, High)
 - Due Date
-- Status
-- Created At
-- Updated At
-
----
-
-## Follow-ups
-
-Stores follow-up activities related to leads and deals.
-
-### Fields
-
-- Follow-up ID (Primary Key)
-- Lead ID (Foreign Key)
-- Follow-up Date
-- Notes
-- Status
-- Created At
-- Updated At
+- Is Completed
+- Created At, Updated At, Created By, Updated By
+- Is Deleted, Deleted At
 
 ---
 
 ## Activities
 
-Stores user activity logs.
+Stores logged interactions (calls, emails, notes, meetings), optionally linked to a lead, contact, or deal.
 
 ### Fields
 
-- Activity ID (Primary Key)
-- User ID (Foreign Key)
-- Activity Type
-- Description
-- Timestamp
+- ID (Primary Key)
+- Created By ID (Foreign Key → Users)
+- Lead ID (Foreign Key → Leads, optional)
+- Contact ID (Foreign Key → Contacts, optional)
+- Deal ID (Foreign Key → Deals, optional)
+- Type (Call, Email, Note, Meeting)
+- Note
+- Created At
+- Is Deleted, Deleted At
+
+> Note: Activities do not track Updated At / Updated By, since activity logs are treated as immutable once created.
+
+---
+
+## Follow-ups (Planned)
+
+> Status: Not yet implemented. No `Follow-up` table currently exists in the schema — planned for a future phase.
 
 ---
 
 # Entity Relationships
 
-The CRM database follows relational database principles.
-
 ```text
-Company
-   │
-   ├──────────────┐
-   ▼              ▼
-Contact        Lead
-                  │
-                  ▼
-                Deal
-                  │
-                  ▼
-                Task
-                  │
-                  ▼
-             Follow-up
-
-User
+Users
   │
-  ▼
-Activity
+  ├── owns ──────────► Leads
+  ├── owns ──────────► Deals
+  ├── assigned_to ───► Tasks
+  └── created_by ────► Activities
+
+Companies
+  │
+  └── has ───────────► Contacts
+                          │
+                          ├── linked_to ─► Deals
+                          ├── linked_to ─► Tasks
+                          └── linked_to ─► Activities
+
+Leads ──linked_to──► Tasks, Activities
+Deals ──linked_to──► Tasks, Activities
 ```
 
 ---
@@ -204,33 +200,35 @@ The database uses foreign keys to maintain relationships between tables.
 
 Examples include:
 
-- Company → Contacts
-- Company → Leads
-- Contact → Leads
-- Lead → Deals
-- Lead → Follow-ups
-- User → Activities
+- Companies → Contacts
+- Contacts → Deals
+- Users → Leads (owner)
+- Users → Deals (owner)
+- Users → Tasks (assigned_to)
+- Users → Activities (created_by)
+- Leads / Contacts / Deals → Tasks (optional polymorphic links)
+- Leads / Contacts / Deals → Activities (optional polymorphic links)
 
 ---
 
 # Audit Columns
 
-Most tables include audit fields to track record creation and updates.
-
-Common audit columns include:
+Most tables include audit fields to track record creation and updates:
 
 - Created At
 - Updated At
-- Created By (optional)
-- Updated By (optional)
+- Created By
+- Updated By
+
+> Activities intentionally exclude Updated At / Updated By, since activity logs are immutable.
 
 ---
 
 # Soft Delete
 
-Instead of permanently deleting records, the CRM system is designed to support soft deletion.
+Instead of permanently deleting records, all core tables support soft deletion.
 
-Example fields:
+Fields:
 
 - Is Deleted
 - Deleted At
@@ -245,15 +243,16 @@ Benefits include:
 
 # Database Indexing
 
-Indexes are planned for frequently searched columns to improve query performance.
+Indexed columns for frequently searched fields:
 
-Examples include:
+- Email (Users, Contacts, Leads)
+- ID fields (all primary/foreign keys)
 
-- Email
-- Company Name
-- Lead Status
-- Deal Stage
-- User ID
+---
+
+# Data Import & Export
+
+The system supports CSV-based import and export for Leads, Contacts, and Companies, enabling bulk data operations without requiring schema changes — export/import operates directly on existing tables.
 
 ---
 
@@ -261,11 +260,8 @@ Examples include:
 
 The Entity Relationship (ER) Diagram illustrates the relationships between all CRM entities.
 
-The ER diagram is available in:
-
-```text
-documentation/er-diagram.png
-```
+- Interactive (Mermaid): [`docs/ER_DIAGRAM.md`](../docs/ER_DIAGRAM.md)
+- Static image: `documentation/er-diagram.png`
 
 ---
 
@@ -273,6 +269,7 @@ documentation/er-diagram.png
 
 The database design can be extended to support:
 
+- Follow-up / Reminder Tracking
 - Customer Support Tickets
 - Email History
 - File Attachments

@@ -35,12 +35,13 @@ The CRM APIs are designed to support:
 
 - RESTful Architecture
 - JSON Request and Response
-- JWT Authentication
+- JWT Authentication (access + refresh tokens)
 - Role-Based Authorization
 - Request Validation
 - Exception Handling
 - API Documentation using Swagger/OpenAPI
 - Secure Data Access
+- CSV Import/Export for bulk data operations
 
 ---
 
@@ -50,12 +51,11 @@ These APIs manage user authentication and authorization.
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| POST | `/auth/login` | User login |
-| POST | `/auth/logout` | User logout |
-| POST | `/auth/refresh-token` | Generate new access token |
-| POST | `/auth/forgot-password` | Request password reset |
-| POST | `/auth/reset-password` | Reset password |
-| POST | `/auth/change-password` | Change password |
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | User login (returns access + refresh token) |
+| POST | `/api/auth/refresh` | Generate new access token using refresh token |
+| POST | `/api/auth/logout` | User logout |
+| GET | `/api/auth/me` | Get current logged-in user details |
 
 ---
 
@@ -65,11 +65,11 @@ These APIs manage company records.
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/companies` | Get all companies |
-| GET | `/companies/{id}` | Get company details |
-| POST | `/companies` | Create company |
-| PUT | `/companies/{id}` | Update company |
-| DELETE | `/companies/{id}` | Delete company |
+| GET | `/api/companies` | Get all companies |
+| GET | `/api/companies/{id}` | Get company details |
+| POST | `/api/companies` | Create company |
+| PUT | `/api/companies/{id}` | Update company |
+| DELETE | `/api/companies/{id}` | Delete company (soft delete) |
 
 ---
 
@@ -79,11 +79,11 @@ These APIs manage company contacts.
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/contacts` | Get all contacts |
-| GET | `/contacts/{id}` | Get contact details |
-| POST | `/contacts` | Create contact |
-| PUT | `/contacts/{id}` | Update contact |
-| DELETE | `/contacts/{id}` | Delete contact |
+| GET | `/api/contacts` | Get all contacts |
+| GET | `/api/contacts/{id}` | Get contact details |
+| POST | `/api/contacts` | Create contact |
+| PUT | `/api/contacts/{id}` | Update contact |
+| DELETE | `/api/contacts/{id}` | Delete contact (soft delete) |
 
 ---
 
@@ -93,11 +93,11 @@ These APIs manage customer leads.
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/leads` | Get all leads |
-| GET | `/leads/{id}` | Get lead details |
-| POST | `/leads` | Create lead |
-| PUT | `/leads/{id}` | Update lead |
-| DELETE | `/leads/{id}` | Delete lead |
+| GET | `/api/leads` | Get all leads |
+| GET | `/api/leads/{id}` | Get lead details |
+| POST | `/api/leads` | Create lead |
+| PUT | `/api/leads/{id}` | Update lead |
+| DELETE | `/api/leads/{id}` | Delete lead (soft delete) |
 
 ---
 
@@ -107,11 +107,12 @@ These APIs manage the sales pipeline.
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/deals` | Get all deals |
-| GET | `/deals/{id}` | Get deal details |
-| POST | `/deals` | Create deal |
-| PUT | `/deals/{id}` | Update deal |
-| DELETE | `/deals/{id}` | Delete deal |
+| GET | `/api/deals` | Get all deals |
+| GET | `/api/deals/{id}` | Get deal details |
+| POST | `/api/deals` | Create deal |
+| PUT | `/api/deals/{id}` | Update deal |
+| PATCH | `/api/deals/{id}/stage` | Update deal stage (used by Kanban drag-and-drop) |
+| DELETE | `/api/deals/{id}` | Delete deal (soft delete) |
 
 ---
 
@@ -121,25 +122,10 @@ These APIs manage user tasks.
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/tasks` | Get all tasks |
-| GET | `/tasks/{id}` | Get task details |
-| POST | `/tasks` | Create task |
-| PUT | `/tasks/{id}` | Update task |
-| DELETE | `/tasks/{id}` | Delete task |
-
----
-
-# Follow-up APIs
-
-These APIs manage follow-up activities.
-
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/follow-ups` | Get all follow-ups |
-| GET | `/follow-ups/{id}` | Get follow-up details |
-| POST | `/follow-ups` | Schedule follow-up |
-| PUT | `/follow-ups/{id}` | Update follow-up |
-| DELETE | `/follow-ups/{id}` | Delete follow-up |
+| GET | `/api/tasks` | Get all tasks |
+| POST | `/api/tasks` | Create task |
+| PUT | `/api/tasks/{id}` | Update task |
+| DELETE | `/api/tasks/{id}` | Delete task |
 
 ---
 
@@ -149,8 +135,43 @@ These APIs record and retrieve activity logs.
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/activities` | Get activity logs |
-| GET | `/activities/{id}` | Get activity details |
+| GET | `/api/activities` | Get activity logs |
+| POST | `/api/activities` | Create activity log |
+| DELETE | `/api/activities/{id}` | Delete activity log |
+
+---
+
+# Reports & Analytics APIs
+
+These APIs provide aggregated analytics computed from existing CRM data (Leads, Deals, Tasks, Activities). There is no dedicated Reports table — all data is calculated on request.
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/api/reports/summary` | Key metrics: total revenue, pipeline value, win rate, active deals |
+| GET | `/api/reports/leads-by-status` | Lead distribution by status (pie chart data) |
+| GET | `/api/reports/deals-by-stage` | Deal distribution by pipeline stage (bar chart data) |
+| GET | `/api/reports/revenue-trend` | Revenue trend for closed-won deals over time |
+
+---
+
+# Data Import & Export APIs
+
+> **Note:** This feature is under active development. Endpoints below will be confirmed and finalized once merged into the main branch.
+
+The system supports CSV-based bulk import and export for key entities.
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/api/leads/export` | Export leads to CSV/Excel |
+| POST | `/api/leads/import` | Bulk import leads from CSV |
+| GET | `/api/contacts/export` | Export contacts to CSV/Excel |
+| GET | `/api/companies/export` | Export companies to CSV/Excel |
+
+---
+
+# Follow-up APIs (Planned)
+
+> Status: Not yet implemented — planned for a future phase. No `Follow-up` database table currently exists.
 
 ---
 
@@ -172,16 +193,16 @@ Protected APIs require a valid JWT Access Token.
 
 Security features include:
 
-- JWT Authentication
+- JWT Authentication (30-min access token, 7-day refresh token)
 - Refresh Token Support
-- Role-Based Authorization
+- Role-Based Authorization (Admin, Manager, Sales Rep)
 - Protected Endpoints
 
 ---
 
 # API Documentation
 
-FastAPI automatically generates interactive API documentation using Swagger/OpenAPI.
+FastAPI automatically generates interactive API documentation using Swagger/OpenAPI, available at `/docs`.
 
 Developers can:
 
@@ -206,6 +227,7 @@ Common responses include:
 | 401 | Unauthorized |
 | 403 | Forbidden |
 | 404 | Resource Not Found |
+| 422 | Unprocessable Content (validation error) |
 | 500 | Internal Server Error |
 
 ---
@@ -214,9 +236,9 @@ Common responses include:
 
 The API can be extended to support:
 
+- Follow-up Management APIs
 - Email Notifications
 - File Upload APIs
-- Dashboard Analytics APIs
 - AI Lead Scoring APIs
 - Calendar Integration
 - Third-party Integrations

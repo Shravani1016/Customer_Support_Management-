@@ -25,7 +25,7 @@ A full-stack CRM for managing leads, contacts, companies, deals, tasks, and acti
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 15 (App Router) + TypeScript + Tailwind CSS |
+| Frontend | Next.js 16 (App Router) + TypeScript + Tailwind CSS |
 | Backend | Python FastAPI |
 | Database | PostgreSQL |
 | ORM / Migrations | SQLAlchemy + Alembic |
@@ -49,33 +49,82 @@ A full-stack CRM for managing leads, contacts, companies, deals, tasks, and acti
 - **Reports & Analytics** — Leads by status (pie), deals by stage (bar), revenue trend
 - **UI Polish** — Toast notifications, loading skeletons/spinners, phone number validation (10 digits), consistent dark mode across all pages
 - **Structured Logging** — Request logs + auth event logs (login, register, failed attempts)
+- **CSV Import/Export** — Import leads, contacts, and companies from CSV files, and export CRM data for backup or reporting.
 
 ---
 
 ## Project Structure
-Customer_Support_Management-/
-├── backend/                    ← FastAPI server
+```
+Customer_Support_Management/
+│
+├── backend/                         # FastAPI server
 │   ├── app/
-│   │   ├── core/                ← Logging config
-│   │   ├── models/               ← SQLAlchemy models (models.py, mixins.py)
-│   │   ├── routers/              ← API endpoints (auth, leads, contacts, companies, deals, tasks, activities, reports)
-│   │   ├── schemas/              ← Pydantic request/response schemas
-│   │   ├── utils/                ← Auth helpers (hashing, JWT)
+│   │   ├── core/                    # Logging configuration
+│   │   ├── models/                  # SQLAlchemy models
+│   │   │   ├── models.py
+│   │   │   └── mixins.py
+│   │   ├── routers/                 # API endpoints
+│   │   │   ├── auth.py
+│   │   │   ├── leads.py
+│   │   │   ├── contacts.py
+│   │   │   ├── companies.py
+│   │   │   ├── deals.py
+│   │   │   ├── tasks.py
+│   │   │   ├── activities.py
+│   │   │   └── reports.py
+│   │   ├── schemas/                 # Pydantic request/response schemas
+│   │   ├── utils/                   # Authentication helpers
+│   │   │   ├── hashing.py
+│   │   │   └── jwt.py
 │   │   ├── config.py
 │   │   ├── database.py
 │   │   ├── dependencies.py
 │   │   └── main.py
-│   ├── alembic/                  ← DB migrations
-│   └── app.log                   ← Runtime log file
+│   │
+│   ├── alembic/                     # Database migrations
+│   └── app.log                      # Runtime log file
+│
 ├── docs/
-│   └── ER_DIAGRAM.md             ← Mermaid ER diagram (renders on GitHub)
-├── documentation/                ← Architecture, API overview, auth flow, DB design, screenshots
+│   └── ER_DIAGRAM.md                # Mermaid ER diagram
+│
+├── documentation/
+│   ├── architecture.md
+│   ├── api-overview.md
+│   ├── authentication.md
+│   ├── database-design.md
+│   ├── modules.md
+│   ├── tech-stack.md
+│   ├── workflow.md
+│   ├── screenshots.md
+│   ├── er-diagram.png
 │   └── screenshots/
-├── frontend/                     ← Next.js web app
-│   ├── app/dashboard/            ← Leads, Contacts, Companies, Deals, Tasks, Activities, Reports pages
-│   ├── app/login/
-│   ├── components/               ← Sidebar, ThemeToggle, PerformanceChart, DealCard, KanbanColumn, AddDealModal
-│   └── lib/                      ← API client (api.ts), Auth context (AuthContext.tsx)
+│
+├── frontend/                        # Next.js web application
+│   ├── app/
+│   │   ├── dashboard/
+│   │   │   ├── leads/
+│   │   │   ├── contacts/
+│   │   │   ├── companies/
+│   │   │   ├── deals/
+│   │   │   ├── tasks/
+│   │   │   ├── activities/
+│   │   │   └── reports/
+│   │   └── login/
+│   │
+│   ├── components/
+│   │   ├── Sidebar.tsx
+│   │   ├── ThemeToggle.tsx
+│   │   ├── PerformanceChart.tsx
+│   │   ├── DealCard.tsx
+│   │   ├── KanbanColumn.tsx
+│   │   └── AddDealModal.tsx
+│   │
+│   └── lib/
+│       ├── api.ts
+│       └── AuthContext.tsx
+│
+└── README.md
+```
 
 ---
 
@@ -229,6 +278,23 @@ Full walkthrough: [`documentation/screenshots.md`](documentation/screenshots.md)
 | **Reports** | ![Reports](documentation/screenshots/reports.png) |
 | **Swagger — Overview** | ![Swagger Overview](documentation/screenshots/swagger-overview.png) |
 | **Swagger — Reports** | ![Swagger Reports](documentation/screenshots/swagger-reports.png) |
+---
+
+## Future Enhancements
+
+The following features are planned for future releases of ClientFlow CRM:
+
+- **Email Integration** – Integrate Gmail and Outlook APIs to send, receive, and track customer emails directly within the CRM.
+- **Real-Time Notifications** – Notify users about task deadlines, deal updates, new assignments, and important activities.
+- **Calendar Integration** – Synchronize meetings, reminders, and follow-ups with Google Calendar and Microsoft Outlook.
+- **Advanced Reporting & Analytics** – Support custom dashboards, advanced filters, and PDF/Excel report generation.
+- **File & Document Management** – Upload and organize contracts, proposals, invoices, and other documents for CRM records.
+- **Granular Role-Based Permissions** – Extend role management with customizable permissions for different user groups.
+- **Global Search** – Provide fast, unified search across leads, contacts, companies, deals, tasks, and activities.
+- **Mobile Application** – Develop native or cross-platform mobile apps for Android and iOS.
+- **Third-Party Integrations** – Connect with Slack, Microsoft Teams, Zapier, and other business productivity tools.
+- **AI-Powered CRM Features** – Implement lead scoring, sales forecasting, intelligent follow-up suggestions, and chatbot assistance.
+
 ---
 
 ## Documentation Index

@@ -20,7 +20,7 @@ The application is built using **Next.js** for the frontend, **FastAPI** for the
                                   ▼
                     ┌──────────────────────────┐
                     │        Frontend          │
-                    │   Next.js 15 + React     │
+                    │   Next.js 16 + React     │
                     │      TypeScript          │
                     └─────────────┬────────────┘
                                   │
@@ -52,20 +52,22 @@ The presentation layer is responsible for providing an interactive and responsiv
 
 ### Responsibilities
 
-- Responsive Dashboard
+- Responsive Dashboard with live stats and performance charts
+- Dark / Light Mode Theme Toggle
 - API Integration
-- Form Validation
+- Form Validation (including phone number length validation)
 - Loading & Error States
 - Toast Notifications
 - Reusable Components
 - Search & Filters
+- Kanban Drag-and-Drop (Deals Pipeline)
 
 ### Technologies
 
-* Next.js 15 (App Router)
+* Next.js 16 (App Router)
 * React
 * TypeScript
-* Bootstrap / Tailwind CSS
+* Tailwind CSS
 
 ---
 
@@ -81,10 +83,10 @@ The backend contains the business logic and exposes RESTful APIs that process cl
 * Business Logic
 * Request Validation
 * Exception Handling
-* Logging
+* Structured Logging
 * API Documentation
-
-
+* Analytics Aggregation (Reports)
+* CSV Import/Export
 
 ### Backend Services
 
@@ -93,7 +95,7 @@ The backend contains the business logic and exposes RESTful APIs that process cl
 - Alembic Database Migrations
 - Pydantic Data Validation
 - Exception Handling
-- Logging
+- Structured Logging (console + `app.log`)
 - Environment Variable Management
 
 ### Technologies
@@ -125,7 +127,7 @@ The data layer stores all application data securely and efficiently.
 * Store Leads
 * Store Deals
 * Store Tasks
-* Store Follow-ups
+* Store Activities
 * Maintain Relationships
 * Data Integrity
 
@@ -169,16 +171,20 @@ A typical request follows these steps:
 
 The CRM system is organized into the following functional modules:
 
+**Implemented:**
 - Authentication
 - Dashboard
 - Companies
 - Contacts
 - Leads
-- Deals Pipeline
+- Deals Pipeline (Kanban)
 - Tasks
-- Follow-ups
-- Activity Management
-- Notes
+- Activity Management (calls, emails, notes, meetings)
+- Reports & Analytics
+- CSV Import/Export
+
+**Planned:**
+- Follow-up Management
 
 ---
 
@@ -208,14 +214,16 @@ Benefits include:
 - Automatic API documentation
 - Faster backend development
 
+---
+
 # Scalability
 
 The architecture is designed to support future enhancements, including:
 
-* Additional CRM modules
+* Follow-up Management
 * AI-powered automation
 * Email notifications
-* Reporting and analytics
+* Advanced/custom reporting
 * Third-party integrations
 * Microservices migration (if required)
 
