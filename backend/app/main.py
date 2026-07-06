@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import time
 from app.core.logging_config import logger
+from app.routers import users
 
 from app.routers import task
 from app.database import Base, engine
@@ -47,6 +48,7 @@ app.include_router(reports.router)
 app.include_router(task.router)
 app.include_router(password_reset.router)
 app.include_router(super_admin.router)
+app.include_router(users.router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
