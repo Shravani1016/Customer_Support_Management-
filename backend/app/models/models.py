@@ -11,6 +11,7 @@ from app.database import Base  # ← changed from app.core.database
 
 # ─── Enums ───────────────────────────────────────────
 class RoleEnum(str, enum.Enum):
+    super_admin = "super_admin"
     admin = "admin"
     manager = "manager"
     sales_rep = "sales_rep"
@@ -160,4 +161,17 @@ class Activity(Base, SoftDeleteMixin):
     deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    created_by = relationship("User", back_populates="activities", foreign_keys="Activity.created_by_id")
+    created_by = relationship("User", back_populates="activities", foreign_keys="Activity.created_by_id")# ─── Password Reset OTP ──────────────────────────────
+
+class PasswordResetOTP(Base):
+    __tablename__ = "password_reset_otps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, nullable=False, index=True)
+    otp = Column(String, nullable=False)
+    reset_token = Column(String, nullable=True)
+    is_used = Column(Boolean, default=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+ 

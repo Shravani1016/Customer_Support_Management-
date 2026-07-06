@@ -14,6 +14,8 @@ from app.routers import (
     deals,
     activities,
     reports,
+    password_reset,
+    super_admin
 )
 
 # Create database tables
@@ -43,6 +45,8 @@ app.include_router(deals.router)
 app.include_router(activities.router)
 app.include_router(reports.router)
 app.include_router(task.router)
+app.include_router(password_reset.router)
+app.include_router(super_admin.router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

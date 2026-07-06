@@ -7,6 +7,7 @@ from typing import Optional
 from datetime import datetime
 
 class RoleEnum(str, Enum):
+    super_admin = "super_admin"
 
     admin = "admin"
 
