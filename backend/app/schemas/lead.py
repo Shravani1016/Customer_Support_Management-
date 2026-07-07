@@ -16,6 +16,7 @@ class LeadCreate(BaseModel):
     phone: Optional[str] = None
     status: LeadStatusEnum = LeadStatusEnum.new
     source: Optional[str] = None
+    company_name: Optional[str] = None  # NEW
 
     @field_validator('phone')
     @classmethod
@@ -30,6 +31,7 @@ class LeadUpdate(BaseModel):
     phone: Optional[str] = None
     status: Optional[LeadStatusEnum] = None
     source: Optional[str] = None
+    company_name: Optional[str] = None  # NEW
 
     @field_validator('phone')
     @classmethod
@@ -45,8 +47,27 @@ class LeadResponse(BaseModel):
     phone: Optional[str]
     status: LeadStatusEnum
     source: Optional[str]
+    company_name: Optional[str] = None  # NEW
     owner_id: Optional[int]
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ─── NEW: response for the conversion action ─────────────────────────
+class LeadConvertResponse(BaseModel):
+    """
+    Returned by POST /api/leads/{lead_id}/convert.
+    Tells the frontend exactly what got created (or reused), so it can
+    show a confirmation with links to the new Contact/Company/Deal.
+    """
+    lead_id: int
+    contact_id: int
+    contact_created: bool          # False if an existing contact (by email) was reused
+    company_id: Optional[int] = None
+    company_created: bool = False  # False if an existing company (by name) was reused
+    deal_id: int
 
     class Config:
         from_attributes = True
