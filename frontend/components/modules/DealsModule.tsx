@@ -181,11 +181,11 @@ export default function DealsPage() {
 
       {/* Add Deal Modal */}
       {showAddModal && (
-        <AddDealModal
-          onClose={() => setShowAddModal(false)}
-          onCreated={fetchDeals}
-        />
-      )}
+      <AddDealModal
+        onClose={() => setShowAddModal(false)}
+        onSaved={fetchDeals}
+      />
+)}
     </div>
   );
 }

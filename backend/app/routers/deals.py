@@ -95,6 +95,52 @@ def export_deals_csv(db: Session = Depends(get_db), current_user: User = Depends
         headers={"Content-Disposition": "attachment; filename=deals.csv"},
     )
 
+from app.schemas.deal import (
+    DealCreate, DealUpdate, DealResponse,
+    DealContactSummary, DealOwnerSummary, DealDetailResponse,
+)
+
+# ... (keep your existing imports/router/endpoints exactly as they are) ...
+
+@router.get(
+    "/detail",
+    response_model=List[DealDetailResponse],
+    summary="Get all deals with contact, company, and owner details",
+    description="Same as GET /api/deals/, but includes nested contact (with company name) and owner info — used for the table view.",
+)
+def get_deals_detail(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    deals = db.query(Deal).filter(Deal.is_deleted == False).all()
+
+    results = []
+    for deal in deals:
+        contact_summary = None
+        if deal.contact:
+            contact_summary = DealContactSummary(
+                id=deal.contact.id,
+                first_name=deal.contact.first_name,
+                last_name=deal.contact.last_name,
+                email=deal.contact.email,
+                company_id=deal.contact.company_id,
+                company_name=deal.contact.company.name if deal.contact.company else None,
+            )
+
+        owner_summary = None
+        if deal.owner:
+            owner_summary = DealOwnerSummary(id=deal.owner.id, full_name=deal.owner.full_name)
+
+        results.append(DealDetailResponse(
+            id=deal.id,
+            title=deal.title,
+            value=deal.value,
+            stage=deal.stage,
+            contact_id=deal.contact_id,
+            owner_id=deal.owner_id,
+            expected_close_date=deal.expected_close_date,
+            created_at=deal.created_at,
+            contact=contact_summary,
+            owner=owner_summary,
+        ))
+    return results
 
 @router.get(
     "/{deal_id}",

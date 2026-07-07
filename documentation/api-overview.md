@@ -98,6 +98,7 @@ These APIs manage customer leads.
 | POST | `/api/leads` | Create lead |
 | PUT | `/api/leads/{id}` | Update lead |
 | DELETE | `/api/leads/{id}` | Delete lead (soft delete) |
+| POST | `/api/leads/{id}/convert` | Convert a qualified lead into a Contact, Company, and Deal |
 
 ---
 

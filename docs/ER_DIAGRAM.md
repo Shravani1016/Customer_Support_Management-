@@ -55,6 +55,7 @@ erDiagram
         string phone
         enum status
         string source
+        string company_name
         int owner_id FK
         datetime created_at
         boolean is_deleted

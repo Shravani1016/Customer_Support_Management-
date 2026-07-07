@@ -1,11 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import PhoneInput from '@/components/PhoneInput';
 import { Contact } from '@/types';
 import toast from 'react-hot-toast';
 
-// A small rotating palette so avatars aren't all one color — picked
-// deterministically per contact so the same person always gets the same color.
 const AVATAR_COLORS = [
   'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
   'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300',
@@ -24,14 +23,16 @@ function initials(first: string, last: string) {
   return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 }
 
+const emptyForm = { first_name: '', last_name: '', email: '', phone: '' };
+
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', phone: '' });
+  const [form, setForm] = useState(emptyForm);
 
-  // Search state
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchContacts = async () => {
@@ -48,18 +49,41 @@ export default function ContactsPage() {
 
   useEffect(() => { fetchContacts(); }, []);
 
-  const handleCreate = async () => {
+  const openAddForm = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowForm(true);
+  };
+
+  const openEditForm = (contact: Contact) => {
+    setEditingId(contact.id);
+    setForm({
+      first_name: contact.first_name || '',
+      last_name: contact.last_name || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+    });
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
     if (!form.first_name || !form.last_name) { toast.error('First and last name are required!'); return; }
-    if (form.phone && (!/^\d{10}$/.test(form.phone))) { toast.error('Phone must be exactly 10 digits!'); return; }
     try {
       setSaving(true);
-      await api.post('/api/contacts/', form);
-      setForm({ first_name: '', last_name: '', email: '', phone: '' });
+      if (editingId) {
+        await api.put(`/api/contacts/${editingId}`, form);
+        toast.success('Contact updated successfully!');
+      } else {
+        await api.post('/api/contacts/', form);
+        toast.success('Contact created successfully!');
+      }
+      setForm(emptyForm);
+      setEditingId(null);
       setShowForm(false);
-      toast.success('Contact created successfully!');
       fetchContacts();
-    } catch {
-      toast.error('Failed to create contact');
+    } catch (err: any) {
+      const message = err?.response?.data?.detail;
+      toast.error(typeof message === 'string' ? message : (editingId ? 'Failed to update contact' : 'Failed to create contact'));
     } finally {
       setSaving(false);
     }
@@ -74,8 +98,6 @@ export default function ContactsPage() {
       toast.error('Failed to delete contact');
     }
   };
-
-  // export data
 
   const exportCSV = async () => {
     try {
@@ -93,7 +115,6 @@ export default function ContactsPage() {
     }
   };
 
-  // Real-time filtering logic
   const filteredContacts = contacts.filter(contact => {
     const query = searchQuery.toLowerCase().trim();
     return !query ||
@@ -109,7 +130,7 @@ export default function ContactsPage() {
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Contacts</h1>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => (showForm ? setShowForm(false) : openAddForm())}
             className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm transition"
           >
             + Add Contact
@@ -125,45 +146,45 @@ export default function ContactsPage() {
 
       {showForm && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-6 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
-          <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">New Contact</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">
+            {editingId ? 'Edit Contact' : 'New Contact'}
+          </h2>
           <div className="grid grid-cols-2 gap-4">
-<input
-  placeholder="First Name *"
-  value={form.first_name}
-  onChange={e => setForm({ ...form, first_name: e.target.value })}
-  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
-/>
-<input
-  placeholder="Last Name *"
-  value={form.last_name}
-  onChange={e => setForm({ ...form, last_name: e.target.value })}
-  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
-/>
-<input
-  placeholder="Email"
-  type="email"
-  value={form.email}
-  onChange={e => setForm({ ...form, email: e.target.value })}
-  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
-/>
-<input
-  placeholder="Phone (10 digits)"
-  type="tel"
-  maxLength={10}
-  value={form.phone}
-  onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
-  className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
-/>
+            <input
+              placeholder="First Name *"
+              value={form.first_name}
+              onChange={e => setForm({ ...form, first_name: e.target.value })}
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
+            />
+            <input
+              placeholder="Last Name *"
+              value={form.last_name}
+              onChange={e => setForm({ ...form, last_name: e.target.value })}
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
+            />
+            <input
+              placeholder="Email"
+              type="email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
+            />
+            <PhoneInput value={form.phone} onChange={(phone) => setForm({ ...form, phone })} />
           </div>
           <div className="flex gap-2 mt-4">
             <button
-              onClick={handleCreate}
+              onClick={handleSave}
               disabled={saving}
               className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Saving...' : editingId ? 'Update' : 'Save'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-gray-500 dark:text-gray-400 px-4 py-2 text-sm">Cancel</button>
+            <button
+              onClick={() => { setShowForm(false); setEditingId(null); }}
+              className="text-gray-500 dark:text-gray-400 px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -174,7 +195,6 @@ export default function ContactsPage() {
         </div>
       ) : (
         <>
-          {/* Search and Filters Bar */}
           <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
             <div className="relative w-full md:w-96 shrink-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -201,7 +221,6 @@ export default function ContactsPage() {
             )}
           </div>
 
-          {/* Filter Stats */}
           <div className="flex justify-between items-center px-1 mb-2">
             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
               {contacts.length === 0
@@ -240,7 +259,20 @@ export default function ContactsPage() {
                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{contact.email || '—'}</td>
                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{contact.phone || '—'}</td>
                         <td className="px-4 py-3">
-                          <button onClick={() => handleDelete(contact.id)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition">Delete</button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEditForm(contact)}
+                              className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-xs px-2 py-1 rounded-md transition"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(contact.id)}
+                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

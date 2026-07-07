@@ -16,3 +16,22 @@ export const STAGES = [
   { id: 'closed_won', label: 'Closed Won', color: '#34d399' },
   { id: 'closed_lost', label: 'Closed Lost', color: '#f87171' },
 ] as const;
+
+export interface DealContact {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  company_id: number | null;
+  company_name: string | null;
+}
+
+export interface DealOwner {
+  id: number;
+  full_name: string;
+}
+
+export interface DealDetail extends Deal {
+  contact: DealContact | null;
+  owner: DealOwner | null;
+}

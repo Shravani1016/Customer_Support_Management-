@@ -83,7 +83,7 @@ Log a new activity in the CRM system.
 **Optional fields:**
 - `note` → Activity description
 - `lead_id` → Link to a lead
-- `contact_id` → Link to a contact
+- `contact_id` → Link to a contac
 - `deal_id` → Link to a deal
     """
 )
@@ -110,6 +110,23 @@ The activity is not permanently removed from the database.
 **Returns 404** if activity not found or already deleted.
     """
 )
+
+@router.put(
+    "/api/activities/{activity_id}",
+    response_model=ActivityResponse,
+    summary="Update an activity",
+    description="Updates the type and/or note of an existing activity.",
+)
+def update_activity(activity_id: int, activity_update: ActivityCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    activity = db.query(Activity).filter(Activity.id == activity_id, Activity.is_deleted == False).first()
+    if not activity:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    for key, value in activity_update.dict(exclude_unset=True).items():
+        setattr(activity, key, value)
+    db.commit()
+    db.refresh(activity)
+    return activity
+
 def delete_activity(activity_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     activity = db.query(Activity).filter(Activity.id == activity_id, Activity.is_deleted == False).first()
     if not activity:
@@ -155,7 +172,7 @@ Create a new task in the CRM system.
 - `due_date` → Task deadline
 - `priority` → low, medium, high (default: medium)
 - `lead_id` → Link to a lead
-- `contact_id` → Link to a contact
+- `contact_id` → Link to a contac
 - `deal_id` → Link to a deal
     """
 )
