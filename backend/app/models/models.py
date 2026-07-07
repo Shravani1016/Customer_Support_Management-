@@ -20,7 +20,6 @@ class LeadStatusEnum(str, enum.Enum):
     new = "new"
     contacted = "contacted"
     qualified = "qualified"
-    lost = "lost"
     converted = "converted"
 
 class DealStageEnum(str, enum.Enum):
@@ -67,6 +66,7 @@ class Company(Base, TimestampMixin, SoftDeleteMixin):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    email = Column(String)
     industry = Column(String)
     website = Column(String)
     phone = Column(String)

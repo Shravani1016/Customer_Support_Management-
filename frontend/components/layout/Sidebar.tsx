@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Role = "employee" | "admin" | "super_admin";
 
@@ -11,6 +13,8 @@ interface SidebarProps {
 
 export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout, user } = useAuth();
 
   const employeeMenu = [
     {
@@ -102,33 +106,56 @@ export default function Sidebar({ role }: SidebarProps) {
       ? adminMenu
       : superAdminMenu;
 
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 text-white p-6">
+    <aside className="w-64 min-h-screen bg-slate-900 text-white p-6 flex flex-col">
       <h1 className="text-2xl font-bold mb-8">ClientFlow CRM</h1>
 
-      {menu.map((section) => (
-        <div key={section.title} className="mb-8">
-          <h2 className="text-xs uppercase text-gray-400 mb-3">
-            {section.title}
-          </h2>
+      <div className="flex-1">
+        {menu.map((section) => (
+          <div key={section.title} className="mb-8">
+            <h2 className="text-xs uppercase text-gray-400 mb-3">
+              {section.title}
+            </h2>
 
-          <div className="space-y-2">
-            {section.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`block px-4 py-2 rounded-lg ${
-                  pathname === item.href
-                    ? "bg-violet-600"
-                    : "hover:bg-slate-800"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            <div className="space-y-2">
+              {section.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block px-4 py-2 rounded-lg ${
+                    pathname === item.href
+                      ? "bg-violet-600"
+                      : "hover:bg-slate-800"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
+        ))}
+      </div>
+
+      <div className="border-t border-slate-700 pt-4 space-y-3">
+        {user?.email && (
+          <p className="text-xs text-gray-400 truncate px-4">{user.email}</p>
+        )}
+        <div className="flex items-center justify-between px-4">
+          <span className="text-sm text-gray-300">Theme</span>
+          <ThemeToggle />
         </div>
-      ))}
+        <button
+          onClick={handleLogout}
+          className="w-full text-left px-4 py-2 rounded-lg text-sm text-red-400 hover:bg-slate-800 hover:text-red-300 transition"
+        >
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }

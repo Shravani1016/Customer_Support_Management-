@@ -5,14 +5,16 @@ import api from '@/lib/api';
 import { Activity, ACTIVITY_ICONS, ACTIVITY_COLORS } from '@/types/activity';
 import toast from 'react-hot-toast';
 
+const emptyForm = { type: 'note', note: '' };
+
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ type: 'note', note: '' });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  // Search & Filters
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
@@ -32,18 +34,38 @@ export default function ActivitiesPage() {
     fetchActivities();
   }, []);
 
-  const handleCreate = async () => {
+  const openAddForm = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowForm(true);
+  };
+
+  const openEditForm = (activity: Activity) => {
+    setEditingId(activity.id);
+    setForm({ type: activity.type, note: activity.note || '' });
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
     if (!form.note.trim()) return;
 
     setSaving(true);
 
     try {
-      await api.post('/api/activities', form);
-      setForm({ type: 'note', note: '' });
+      if (editingId) {
+        await api.put(`/api/activities/${editingId}`, form);
+        toast.success('Activity updated!');
+      } else {
+        await api.post('/api/activities', form);
+        toast.success('Activity logged!');
+      }
+      setForm(emptyForm);
+      setEditingId(null);
       setShowForm(false);
       fetchActivities();
     } catch (err) {
-      console.error('Failed to create activity', err);
+      console.error('Failed to save activity', err);
+      toast.error(editingId ? 'Failed to update activity' : 'Failed to log activity');
     } finally {
       setSaving(false);
     }
@@ -108,7 +130,6 @@ export default function ActivitiesPage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
           Activities
@@ -116,7 +137,7 @@ export default function ActivitiesPage() {
 
         <div className="flex gap-2">
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => (showForm ? setShowForm(false) : openAddForm())}
             className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm font-medium transition"
           >
             + Log Activity
@@ -130,10 +151,8 @@ export default function ActivitiesPage() {
         </div>
       </div>
 
-      {/* Search & Filters */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search */}
           <input
             type="text"
             placeholder="🔍 Search activities..."
@@ -142,7 +161,6 @@ export default function ActivitiesPage() {
             className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
 
-          {/* Filter */}
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -155,7 +173,6 @@ export default function ActivitiesPage() {
             <option value="meeting">🤝 Meeting</option>
           </select>
 
-          {/* Sort */}
           <select
             value={sortOrder}
             onChange={(e) =>
@@ -167,7 +184,6 @@ export default function ActivitiesPage() {
             <option value="oldest">Oldest First</option>
           </select>
 
-          {/* Clear */}
           <button
             onClick={() => {
               setSearch('');
@@ -181,11 +197,10 @@ export default function ActivitiesPage() {
         </div>
       </div>
 
-      {/* Add Activity Form */}
       {showForm && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-6 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
           <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">
-            New Activity
+            {editingId ? 'Edit Activity' : 'New Activity'}
           </h2>
 
           <div className="grid grid-cols-1 gap-4">
@@ -215,15 +230,15 @@ export default function ActivitiesPage() {
 
           <div className="flex gap-2 mt-4">
             <button
-              onClick={handleCreate}
+              onClick={handleSave}
               disabled={saving}
               className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Saving...' : editingId ? 'Update' : 'Save'}
             </button>
 
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => { setShowForm(false); setEditingId(null); }}
               className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-300 rounded-lg"
             >
               Cancel
@@ -232,7 +247,6 @@ export default function ActivitiesPage() {
         </div>
       )}
 
-      {/* Activities — timeline style */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-md shadow-gray-200/50 dark:shadow-none">
         {loading ? (
           <div className="flex justify-center items-center py-12">
@@ -244,7 +258,6 @@ export default function ActivitiesPage() {
           </div>
         ) : (
           <div className="relative px-6">
-            {/* Timeline connector line running behind the icons */}
             <div className="absolute left-11 top-0 bottom-0 w-px bg-gray-100 dark:bg-gray-700/50" />
 
             <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
@@ -277,12 +290,20 @@ export default function ActivitiesPage() {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => handleDelete(activity.id)}
-                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition shrink-0"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => openEditForm(activity)}
+                      className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-xs px-2 py-1 rounded-md transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(activity.id)}
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

@@ -55,13 +55,14 @@ def export_companies_csv(db: Session = Depends(get_db), current_user: User = Dep
     writer = csv.writer(output)
 
     # Write header row
-    writer.writerow(["ID", "Name", "Industry", "Website", "Phone", "Created At"])
+    writer.writerow(["ID", "Name", "Email", "Industry", "Website", "Phone", "Created At"])
 
     # Write data rows
     for company in companies:
         writer.writerow([
             company.id,
             company.name,
+            company.email or "",
             company.industry or "",
             company.website or "",
             company.phone or "",
@@ -166,16 +167,12 @@ def update_company(
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
 
-    print("BEFORE:", company.name)
-    print("REQUEST:", company_update.dict(exclude_unset=True))
-
     for key, value in company_update.dict(exclude_unset=True).items():
         setattr(company, key, value)
 
+    company.updated_by = current_user.id
     db.commit()
     db.refresh(company)
-
-    print("AFTER:", company.name)
 
     return company
 

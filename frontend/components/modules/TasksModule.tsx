@@ -15,12 +15,15 @@ const statusColors: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
 };
 
-export default function TasksPage() {
+const emptyForm = { title: '', description: '', priority: 'medium' };
+
+export default function TasksModule() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', priority: 'medium' });
+  const [form, setForm] = useState(emptyForm);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -40,17 +43,39 @@ export default function TasksPage() {
 
   useEffect(() => { fetchTasks(); }, []);
 
-  const handleCreate = async () => {
+  const openAddForm = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowForm(true);
+  };
+
+  const openEditForm = (task: Task) => {
+    setEditingId(task.id);
+    setForm({
+      title: task.title || '',
+      description: task.description || '',
+      priority: task.priority || 'medium',
+    });
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
     if (!form.title) { toast.error('Title is required!'); return; }
     try {
       setSaving(true);
-      await api.post('/api/tasks', form);
-      setForm({ title: '', description: '', priority: 'medium' });
+      if (editingId) {
+        await api.put(`/api/tasks/${editingId}`, form);
+        toast.success('Task updated successfully!');
+      } else {
+        await api.post('/api/tasks', form);
+        toast.success('Task created successfully!');
+      }
+      setForm(emptyForm);
+      setEditingId(null);
       setShowForm(false);
-      toast.success('Task created successfully!');
       fetchTasks();
     } catch {
-      toast.error('Failed to create task');
+      toast.error(editingId ? 'Failed to update task' : 'Failed to create task');
     } finally {
       setSaving(false);
     }
@@ -121,7 +146,7 @@ export default function TasksPage() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">Tasks</h1>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => (showForm ? setShowForm(false) : openAddForm())}
             className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm font-medium transition"
           >
             + Add Task
@@ -137,7 +162,9 @@ export default function TasksPage() {
 
       {showForm && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-lg p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
-          <h2 className="font-semibold mb-3 text-slate-900 dark:text-gray-100">New Task</h2>
+          <h2 className="font-semibold mb-3 text-slate-900 dark:text-gray-100">
+            {editingId ? 'Edit Task' : 'New Task'}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
             <input
               placeholder="Title *"
@@ -163,13 +190,18 @@ export default function TasksPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={handleCreate}
+              onClick={handleSave}
               disabled={saving}
               className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Saving...' : editingId ? 'Update' : 'Save'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-gray-500 dark:text-gray-400 px-4 py-2 text-sm">Cancel</button>
+            <button
+              onClick={() => { setShowForm(false); setEditingId(null); }}
+              className="text-gray-500 dark:text-gray-400 px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -180,7 +212,6 @@ export default function TasksPage() {
         </div>
       ) : (
         <>
-          {/* Search and Filters Bar */}
           <div className="flex flex-col md:flex-row gap-3 mb-4 items-stretch md:items-center">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
@@ -278,12 +309,20 @@ export default function TasksPage() {
                         </span>
                       </td>
                       <td className="p-3">
-                        <button
-                          onClick={() => handleDelete(task)}
-                          className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium text-sm cursor-pointer px-2 py-1 rounded-md transition"
-                        >
-                          Delete
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEditForm(task)}
+                            className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 font-medium text-sm cursor-pointer px-2 py-1 rounded-md transition"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(task)}
+                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium text-sm cursor-pointer px-2 py-1 rounded-md transition"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

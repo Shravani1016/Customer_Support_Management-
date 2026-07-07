@@ -5,6 +5,7 @@ from datetime import datetime
 
 class CompanyCreate(BaseModel):
     name: str
+    email: Optional[str] = None
     industry: Optional[str] = None
     website: Optional[str] = None
     phone: Optional[str] = None
@@ -12,14 +13,20 @@ class CompanyCreate(BaseModel):
 
     @field_validator('phone')
     @classmethod
-    def phone_must_be_10_digits(cls, v):
-        if v and (not v.isdigit() or len(v) != 10):
-            raise ValueError('Phone must be exactly 10 digits')
+    def validate_phone(cls, v):
+        if v:
+            cleaned = v.replace(' ', '')
+            if not cleaned.startswith('+'):
+                raise ValueError('Phone must include a country code, e.g. +91 9876543210')
+            digits = cleaned[1:]
+            if not digits.isdigit() or not (6 <= len(digits) <= 15):
+                raise ValueError('Phone number must be 6–15 digits after the country code')
         return v
 
 
 class CompanyUpdate(BaseModel):
     name: Optional[str] = None
+    email: Optional[str] = None
     industry: Optional[str] = None
     website: Optional[str] = None
     phone: Optional[str] = None
@@ -27,15 +34,21 @@ class CompanyUpdate(BaseModel):
 
     @field_validator('phone')
     @classmethod
-    def phone_must_be_10_digits(cls, v):
-        if v and (not v.isdigit() or len(v) != 10):
-            raise ValueError('Phone must be exactly 10 digits')
+    def validate_phone(cls, v):
+        if v:
+            cleaned = v.replace(' ', '')
+            if not cleaned.startswith('+'):
+                raise ValueError('Phone must include a country code, e.g. +91 9876543210')
+            digits = cleaned[1:]
+            if not digits.isdigit() or not (6 <= len(digits) <= 15):
+                raise ValueError('Phone number must be 6–15 digits after the country code')
         return v
 
 
 class CompanyResponse(BaseModel):
     id: int
     name: str
+    email: Optional[str]
     industry: Optional[str]
     website: Optional[str]
     phone: Optional[str]
@@ -45,10 +58,6 @@ class CompanyResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-# ─── NEW: nested schemas for the connected detail view ──────────────
-# Kept intentionally minimal (just what's needed to display in a table)
-# to avoid circular-import issues between company/contact/deal schemas.
 
 class CompanyContactSummary(BaseModel):
     id: int
@@ -97,13 +106,6 @@ class CompanyActivitySummary(BaseModel):
         from_attributes = True
 
 class CompanyDetailResponse(CompanyResponse):
-    """
-    Extends CompanyResponse with the company's contacts, and — through
-    those contacts and deals — every task and activity linked to this
-    company. Used only by the /api/companies/{id}/detail endpoint; the
-    existing /api/companies/{id} endpoint and its response_model are
-    untouched.
-    """
     contacts: List[CompanyContactSummary] = []
     deals: List[CompanyDealSummary] = []
     tasks: List[CompanyTaskSummary] = []

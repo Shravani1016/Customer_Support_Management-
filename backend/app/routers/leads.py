@@ -105,7 +105,7 @@ def convert_lead(lead_id: int, db: Session = Depends(get_db), current_user: User
             detail="Only qualified leads can be converted. Move this lead to 'qualified' first.",
         )
 
-    # ── 1. Company: find by name, or create if the lead specified one ──
+        # ── 1. Company: find by name, or create if the lead specified one ──
     company = None
     company_created = False
     if lead.company_name and lead.company_name.strip():
@@ -116,10 +116,15 @@ def convert_lead(lead_id: int, db: Session = Depends(get_db), current_user: User
         )
         if not company:
             company = Company(name=lead.company_name.strip())
+            if lead.email:
+                company.email = lead.email
+            if lead.phone:
+                company.phone = lead.phone
             company.created_by = current_user.id
             db.add(company)
             db.flush()  # get company.id without a full commit yet
             company_created = True
+
 
     # ── 2. Contact: find by email, or create ──
     contact = None

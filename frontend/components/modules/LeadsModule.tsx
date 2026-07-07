@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import PhoneInput from '@/components/PhoneInput';
 import { Lead } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -8,18 +9,29 @@ const statusColors: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
   contacted: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300',
   qualified: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300',
-  lost: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
   converted: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
 };
 
-export default function LeadsPage() {
+interface ConvertResponse {
+  lead_id: number;
+  contact_id: number;
+  contact_created: boolean;
+  company_id: number | null;
+  company_created: boolean;
+  deal_id: number;
+}
+
+const emptyForm = { name: '', email: '', phone: '', status: 'new', source: '', company_name: '' };
+
+export default function LeadsModule() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'new', source: '' });
+  const [converting, setConverting] = useState<number | null>(null);
+  const [form, setForm] = useState(emptyForm);
 
-  // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
@@ -38,18 +50,42 @@ export default function LeadsPage() {
 
   useEffect(() => { fetchLeads(); }, []);
 
-  const handleCreate = async () => {
+  const openAddForm = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowForm(true);
+  };
+
+  const openEditForm = (lead: Lead) => {
+    setEditingId(lead.id);
+    setForm({
+      name: lead.name || '',
+      email: lead.email || '',
+      phone: lead.phone || '',
+      status: lead.status || 'new',
+      source: lead.source || '',
+      company_name: lead.company_name || '',
+    });
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
     if (!form.name) { toast.error('Name is required!'); return; }
-    if (form.phone && (!/^\d{10}$/.test(form.phone))) { toast.error('Phone must be exactly 10 digits!'); return; }
     try {
       setSaving(true);
-      await api.post('/api/leads/', form);
-      setForm({ name: '', email: '', phone: '', status: 'new', source: '' });
+      if (editingId) {
+        await api.put(`/api/leads/${editingId}`, form);
+        toast.success('Lead updated successfully!');
+      } else {
+        await api.post('/api/leads/', form);
+        toast.success('Lead created successfully!');
+      }
+      setForm(emptyForm);
+      setEditingId(null);
       setShowForm(false);
-      toast.success('Lead created successfully!');
       fetchLeads();
     } catch {
-      toast.error('Failed to create lead');
+      toast.error(editingId ? 'Failed to update lead' : 'Failed to create lead');
     } finally {
       setSaving(false);
     }
@@ -62,6 +98,30 @@ export default function LeadsPage() {
       fetchLeads();
     } catch {
       toast.error('Failed to delete lead');
+    }
+  };
+
+  const handleConvert = async (lead: Lead) => {
+    if (!confirm(`Convert "${lead.name}" into a Contact, Company, and Deal?`)) return;
+    try {
+      setConverting(lead.id);
+      const res = await api.post<ConvertResponse>(`/api/leads/${lead.id}/convert`);
+      const { contact_created, company_created, company_id } = res.data;
+
+      const parts: string[] = [];
+      parts.push(contact_created ? 'new contact created' : 'existing contact linked');
+      if (company_id) {
+        parts.push(company_created ? 'new company created' : 'existing company linked');
+      }
+      parts.push('new deal created');
+
+      toast.success(`Lead converted — ${parts.join(', ')}!`);
+      fetchLeads();
+    } catch (err: any) {
+      const message = err?.response?.data?.detail || 'Failed to convert lead';
+      toast.error(message);
+    } finally {
+      setConverting(null);
     }
   };
 
@@ -87,16 +147,13 @@ export default function LeadsPage() {
     setSourceFilter('all');
   };
 
-  // Get all unique, non-empty sources present in the leads list for the source filter dropdown
   const uniqueSources = Array.from(
     new Set(leads.map(lead => lead.source?.trim() || '').filter(Boolean))
   ).sort();
 
-  // Compute filtered leads in real-time
   const filteredLeads = leads.filter(lead => {
     const query = searchQuery.toLowerCase().trim();
 
-    // Check if query matches Name, Email, Phone, or Source
     const matchesSearch = !query ||
       lead.name.toLowerCase().includes(query) ||
       (lead.email && lead.email.toLowerCase().includes(query)) ||
@@ -105,7 +162,6 @@ export default function LeadsPage() {
 
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
 
-    // Normalise source values when matching
     const leadSource = lead.source?.trim() || '';
     const matchesSource = sourceFilter === 'all' || leadSource === sourceFilter;
 
@@ -118,7 +174,7 @@ export default function LeadsPage() {
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Leads</h1>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => (showForm ? setShowForm(false) : openAddForm())}
             className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 transition"
           >
             + Add Lead
@@ -134,7 +190,9 @@ export default function LeadsPage() {
 
       {showForm && (
         <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700/50 rounded-xl p-6 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none">
-          <h2 className="font-semibold text-gray-700 dark:text-slate-200 mb-4">New Lead</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-slate-200 mb-4">
+            {editingId ? 'Edit Lead' : 'New Lead'}
+          </h2>
           <div className="grid grid-cols-2 gap-4">
             <input
               placeholder="Name *"
@@ -149,18 +207,17 @@ export default function LeadsPage() {
               onChange={e => setForm({ ...form, email: e.target.value })}
               className="border dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-slate-800"
             />
-            <input
-              placeholder="Phone (10 digits)"
-              type="tel"
-              maxLength={10}
-              value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
-              className="border dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-slate-800"
-            />
+            <PhoneInput value={form.phone} onChange={(phone) => setForm({ ...form, phone })} />
             <input
               placeholder="Source"
               value={form.source}
               onChange={e => setForm({ ...form, source: e.target.value })}
+              className="border dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-slate-800"
+            />
+            <input
+              placeholder="Company Name (optional)"
+              value={form.company_name}
+              onChange={e => setForm({ ...form, company_name: e.target.value })}
               className="border dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-slate-800"
             />
             <select
@@ -168,20 +225,25 @@ export default function LeadsPage() {
               onChange={e => setForm({ ...form, status: e.target.value })}
               className="border dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-black dark:text-white dark:bg-slate-800"
             >
-              {['new', 'contacted', 'qualified', 'lost', 'converted'].map(s => (
+              {['new', 'contacted', 'qualified', 'converted'].map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
           <div className="flex gap-2 mt-4">
             <button
-              onClick={handleCreate}
+              onClick={handleSave}
               disabled={saving}
               className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 transition disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Saving...' : editingId ? 'Update' : 'Save'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-gray-500 dark:text-slate-400 px-4 py-2 text-sm">Cancel</button>
+            <button
+              onClick={() => { setShowForm(false); setEditingId(null); }}
+              className="text-gray-500 dark:text-slate-400 px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -192,7 +254,6 @@ export default function LeadsPage() {
         </div>
       ) : (
         <>
-          {/* Search and Filters Bar */}
           <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700/50 rounded-xl p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
             <div className="relative w-full md:w-96 shrink-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -253,7 +314,6 @@ export default function LeadsPage() {
             </div>
           </div>
 
-          {/* Filter Stats */}
           <div className="flex justify-between items-center px-1 mb-2">
             <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">
               {leads.length === 0
@@ -266,16 +326,17 @@ export default function LeadsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 border-b dark:border-slate-700">
                 <tr>
-                  {['Name', 'Email', 'Phone', 'Status', 'Source', 'Actions'].map(h => (
+                  {['Name', 'Email', 'Phone', 'Status', 'Source', 'Company'].map(h => (
                     <th key={h} className="text-left px-4 py-3 font-medium">{h}</th>
                   ))}
+                  <th className="text-right px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                 {leads.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-gray-400 dark:text-slate-500">No leads yet. Add your first one!</td></tr>
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-400 dark:text-slate-500">No leads yet. Add your first one!</td></tr>
                 ) : filteredLeads.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-gray-400 dark:text-slate-500">No leads match your search criteria.</td></tr>
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-400 dark:text-slate-500">No leads match your search criteria.</td></tr>
                 ) : (
                   filteredLeads.map(lead => (
                     <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
@@ -288,10 +349,33 @@ export default function LeadsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{lead.source || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{lead.company_name || '—'}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => handleDelete(lead.id)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition">
-                          Delete
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleConvert(lead)}
+                            disabled={converting === lead.id}
+                            className={`text-xs px-2 py-1 rounded-md transition font-medium whitespace-nowrap disabled:opacity-50 ${
+                              lead.status === 'qualified'
+                                ? 'text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
+                                : 'invisible pointer-events-none'
+                            }`}
+                          >
+                            {converting === lead.id ? 'Converting...' : 'Convert Lead'}
+                          </button>
+                          <button
+                            onClick={() => openEditForm(lead)}
+                            className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-xs px-2 py-1 rounded-md transition whitespace-nowrap"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(lead.id)}
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition whitespace-nowrap"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

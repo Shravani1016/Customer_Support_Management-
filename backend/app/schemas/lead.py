@@ -7,7 +7,6 @@ class LeadStatusEnum(str, Enum):
     new = "new"
     contacted = "contacted"
     qualified = "qualified"
-    lost = "lost"
     converted = "converted"
 
 class LeadCreate(BaseModel):
@@ -20,9 +19,14 @@ class LeadCreate(BaseModel):
 
     @field_validator('phone')
     @classmethod
-    def phone_must_be_10_digits(cls, v):
-        if v and (not v.isdigit() or len(v) != 10):
-            raise ValueError('Phone must be exactly 10 digits')
+    def validate_phone(cls, v):
+        if v:
+            cleaned = v.replace(' ', '')
+            if not cleaned.startswith('+'):
+                raise ValueError('Phone must include a country code, e.g. +91 9876543210')
+            digits = cleaned[1:]
+            if not digits.isdigit() or not (6 <= len(digits) <= 15):
+                raise ValueError('Phone number must be 6–15 digits after the country code')
         return v
 
 class LeadUpdate(BaseModel):
@@ -35,9 +39,14 @@ class LeadUpdate(BaseModel):
 
     @field_validator('phone')
     @classmethod
-    def phone_must_be_10_digits(cls, v):
-        if v and (not v.isdigit() or len(v) != 10):
-            raise ValueError('Phone must be exactly 10 digits')
+    def validate_phone(cls, v):
+        if v:
+            cleaned = v.replace(' ', '')
+            if not cleaned.startswith('+'):
+                raise ValueError('Phone must include a country code, e.g. +91 9876543210')
+            digits = cleaned[1:]
+            if not digits.isdigit() or not (6 <= len(digits) <= 15):
+                raise ValueError('Phone number must be 6–15 digits after the country code')
         return v
 
 class LeadResponse(BaseModel):
