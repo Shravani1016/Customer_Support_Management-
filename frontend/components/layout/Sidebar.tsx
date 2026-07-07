@@ -21,6 +21,7 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Contacts", href: "/dashboard/contacts" },
         { label: "Companies", href: "/dashboard/companies" },
         { label: "Deals", href: "/dashboard/deals" },
+        { label: "My Profile", href: "/dashboard/profile" }
       ],
     },
     {
@@ -45,6 +46,7 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Contacts", href: "/admin/contacts" },
         { label: "Companies", href: "/admin/companies" },
         { label: "Deals", href: "/admin/deals" },
+        { label: "My Profile", href: "/admin/profile" }
       ],
     },
     {
@@ -62,6 +64,7 @@ export default function Sidebar({ role }: SidebarProps) {
       title: "Reports",
       items: [{ label: "Reports", href: "/admin/reports" }],
     },
+
   ];
 
   const superAdminMenu = [
@@ -71,6 +74,9 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Dashboard", href: "/super-admin/dashboard" },
         { label: "Manage Admins", href: "/super-admin/admins" },
         { label: "Manage Employees", href: "/super-admin/employees" },
+        { label: "Audit Logs", href: "/super-admin/audit-logs" }, 
+        { label: "My Profile", href: "/super-admin/profile" }
+        
       ],
     },
     {
@@ -80,6 +86,7 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Contacts", href: "/super-admin/contacts" },
         { label: "Companies", href: "/super-admin/companies" },
         { label: "Deals", href: "/super-admin/deals" },
+        { label: "Audit Logs", href: "/super-admin/audit-logs" }, 
       ],
     },
     {
@@ -93,7 +100,9 @@ export default function Sidebar({ role }: SidebarProps) {
       title: "Reports",
       items: [{ label: "Reports", href: "/super-admin/reports" }],
     },
+
   ];
+
 
   const menu =
     role === "employee"
