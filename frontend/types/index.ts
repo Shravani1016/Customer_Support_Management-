@@ -14,6 +14,7 @@ export interface Lead {
   status: 'new' | 'contacted' | 'qualified' | 'lost' | 'converted';
   source?: string;
   owner_id?: number;
+  company_name?: string;
   created_at: string;
 }
 

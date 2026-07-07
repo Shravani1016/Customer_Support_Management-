@@ -1,11 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import time
+from app.routers import files
 from app.core.logging_config import logger
 
 from app.routers import task
 from app.database import Base, engine
-from app.models import models
+import app.models.models
 from app.routers import (
     auth,
     leads,
@@ -15,7 +16,8 @@ from app.routers import (
     activities,
     reports,
     password_reset,
-    super_admin
+    super_admin,
+    users,
 )
 
 # Create database tables
@@ -47,6 +49,8 @@ app.include_router(reports.router)
 app.include_router(task.router)
 app.include_router(password_reset.router)
 app.include_router(super_admin.router)
+app.include_router(files.router)
+app.include_router(users.router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

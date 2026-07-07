@@ -100,6 +100,7 @@ Stores potential sales opportunities.
 - Phone
 - Status (New, Contacted, Qualified, Lost, Converted)
 - Source
+- Company Name (free text, used during Lead Conversion — not a foreign key)
 - Created At, Updated At, Created By, Updated By
 - Is Deleted, Deleted At
 

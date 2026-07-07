@@ -7,8 +7,10 @@ import csv
 import io
 
 from app.database import get_db
-from app.models.models import Contact
-from app.schemas.contact import ContactCreate, ContactUpdate, ContactResponse
+from app.models.models import Contact, Company, Deal, Task, Activity
+from app.schemas.contact import (
+    ContactCreate, ContactUpdate, ContactResponse, ContactDetailResponse,
+)
 from app.dependencies import get_current_user
 from app.models.models import User
 
@@ -72,6 +74,57 @@ def export_contacts_csv(db: Session = Depends(get_db), current_user: User = Depe
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=contacts.csv"},
     )
+
+
+# ─── NEW: connected detail view ──────────────────────────────────────
+@router.get(
+    "/{contact_id}/detail",
+    response_model=ContactDetailResponse,
+    summary="Get a contact with its company, deals, tasks, and activities",
+    description=(
+        "Returns a single contact plus its linked company (if any), every "
+        "non-deleted deal linked to this contact, every task linked to this "
+        "contact, and every activity logged against this contact."
+    ),
+)
+def get_contact_detail(contact_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    contact = db.query(Contact).filter(Contact.id == contact_id, Contact.is_deleted == False).first()
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+
+    company = None
+    if contact.company_id:
+        company = (
+            db.query(Company)
+            .filter(Company.id == contact.company_id, Company.is_deleted == False)
+            .first()
+        )
+
+    deals = (
+        db.query(Deal)
+        .filter(Deal.contact_id == contact_id, Deal.is_deleted == False)
+        .all()
+    )
+
+    tasks = (
+        db.query(Task)
+        .filter(Task.contact_id == contact_id, Task.is_deleted == False)
+        .all()
+    )
+
+    activities = (
+        db.query(Activity)
+        .filter(Activity.contact_id == contact_id, Activity.is_deleted == False)
+        .order_by(Activity.created_at.desc())
+        .all()
+    )
+
+    response = ContactDetailResponse.model_validate(contact)
+    response.company = company
+    response.deals = deals
+    response.tasks = tasks
+    response.activities = activities
+    return response
 
 
 @router.get(

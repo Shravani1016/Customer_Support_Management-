@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     MAIL_SERVER: str = "smtp.gmail.com"
     MAIL_FROM_NAME: str = "CRM App"
 
+    # Frontend
+    FRONTEND_URL: str = "http://localhost:3000"
+
     class Config:
         env_file = ".env"
 

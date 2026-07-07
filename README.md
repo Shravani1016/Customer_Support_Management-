@@ -40,7 +40,7 @@ A full-stack CRM for managing leads, contacts, companies, deals, tasks, and acti
 
 - **Auth** — Login/Logout with JWT (30-min access token, 7-day auto-refreshing refresh token), Role-Based Access (Admin, Manager, Sales Rep)
 - **Dashboard** — Live stats cards, Performance Overview chart (weekly pipeline trend), dark/light mode
-- **Leads** — Create, search, filter by status/source, soft delete
+- **Leads** — Create, search, filter by status/source, soft delete, convert qualified leads into Contact + Company + Deal
 - **Contacts** — Create, search, soft delete, linked to companies
 - **Companies** — Create, search, filter by industry, soft delete
 - **Deals Pipeline** — Kanban board with drag-and-drop stage updates, pipeline value tracking

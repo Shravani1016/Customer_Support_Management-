@@ -9,37 +9,46 @@ interface Props {
   label: string;
   color: string;
   deals: Deal[];
+  onEdit?: (deal: Deal) => void;
 }
 
-export default function KanbanColumn({ id, label, color, deals }: Props) {
+export default function KanbanColumn({ id, label, color, deals, onEdit }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id });
-
   const totalValue = deals.reduce((sum, d) => sum + d.value, 0);
 
   return (
     <div className="flex-1 min-w-[280px]">
-      <div
-        className="rounded-t-lg px-4 py-3 flex items-center justify-between"
-        style={{ backgroundColor: color }}
-      >
-        <span className="font-semibold text-white">{label}</span>
-        <span className="bg-white/30 text-white text-xs font-bold px-2 py-1 rounded-full">
-          {deals.length}
+      <div className="flex items-center justify-between px-1 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+          <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{label}</span>
+          <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full">
+            {deals.length}
+          </span>
+        </div>
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 tabular-nums">
+          ${totalValue.toLocaleString()}
         </span>
       </div>
-      <div className="text-xs text-gray-500 dark:text-gray-400 px-4 py-2 bg-gray-50 dark:bg-gray-800/60">
-        ${totalValue.toLocaleString()}
-      </div>
+
       <div
         ref={setNodeRef}
-        className={`min-h-[400px] p-3 rounded-b-lg transition-colors ${
-          isOver ? 'bg-indigo-50 dark:bg-indigo-500/10' : 'bg-gray-100 dark:bg-gray-900/40'
+        className={`min-h-[420px] p-2.5 rounded-xl border transition-colors ${
+          isOver
+            ? 'bg-indigo-50/60 dark:bg-indigo-500/5 border-indigo-200 dark:border-indigo-500/30'
+            : 'bg-gray-50/60 dark:bg-gray-900/40 border-gray-100 dark:border-gray-800'
         }`}
       >
         <SortableContext items={deals.map(d => d.id)} strategy={verticalListSortingStrategy}>
-          {deals.map((deal) => (
-            <DealCard key={deal.id} deal={deal} color={color} />
-          ))}
+          {deals.length === 0 ? (
+            <div className="flex items-center justify-center h-24 text-xs text-gray-400 dark:text-gray-600">
+              No deals
+            </div>
+          ) : (
+            deals.map((deal) => (
+              <DealCard key={deal.id} deal={deal} color={color} onEdit={onEdit} />
+            ))
+          )}
         </SortableContext>
       </div>
     </div>

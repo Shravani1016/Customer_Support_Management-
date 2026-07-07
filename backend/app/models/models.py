@@ -20,7 +20,6 @@ class LeadStatusEnum(str, enum.Enum):
     new = "new"
     contacted = "contacted"
     qualified = "qualified"
-    lost = "lost"
     converted = "converted"
 
 class DealStageEnum(str, enum.Enum):
@@ -67,6 +66,7 @@ class Company(Base, TimestampMixin, SoftDeleteMixin):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    email = Column(String)
     industry = Column(String)
     website = Column(String)
     phone = Column(String)
@@ -102,6 +102,9 @@ class Lead(Base, TimestampMixin, SoftDeleteMixin):
     phone = Column(String)
     status = Column(Enum(LeadStatusEnum), default=LeadStatusEnum.new)
     source = Column(String)
+    # NEW: captures which company this lead works at, so converting the
+    # lead can auto-create (or reuse) a matching Company record.
+    company_name = Column(String, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -160,9 +163,11 @@ class Activity(Base, SoftDeleteMixin):
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
     deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    created_by = relationship("User", back_populates="activities", foreign_keys="Activity.created_by_id")# ─── Password Reset OTP ──────────────────────────────
-
+    created_by_id = Column(Integer, ForeignKey("users.id"))
+    created_by = relationship(
+        "User",
+        foreign_keys=[created_by_id]
+    )
 class PasswordResetOTP(Base):
     __tablename__ = "password_reset_otps"
 
@@ -174,4 +179,24 @@ class PasswordResetOTP(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
- 
+    # ─── Files ───────────────────────────────────────────
+class File(Base, TimestampMixin, SoftDeleteMixin):
+    __tablename__ = "files"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    filename = Column(String, nullable=False)
+    filepath = Column(String, nullable=False)
+
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
+    contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
+    deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
+
+    uploaded_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    company = relationship("Company")
+    contact = relationship("Contact")
+    deal = relationship("Deal")
+    uploaded_by_user = relationship("User", foreign_keys=[uploaded_by])
