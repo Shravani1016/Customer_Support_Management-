@@ -18,7 +18,9 @@ const nav = [
   { label: 'Activities', href: '/dashboard/activities', icon: Activity },
   { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
 ];
-
+interface SidebarProps {
+  role: 'employee' | 'admin' | 'super-admin';
+}
 export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -161,12 +163,12 @@ export default function Sidebar({ role }: SidebarProps) {
       </nav>
 
       {/* User + Theme Toggle */}
-      <div className="border-t border-slate-100 dark:border-slate-700 p-3">
+       <div className="border-t border-slate-100 dark:border-slate-700 p-3">
         <div className="flex items-center gap-2 rounded-lg p-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white flex-shrink-0">
             {user?.full_name?.[0]?.toUpperCase() ?? 'U'}
           </div>
-        ))}
+        
       </div>
 
       <div className="border-t border-slate-700 pt-4 space-y-3">
