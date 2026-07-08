@@ -1,7 +1,8 @@
+from ast import List
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import Lis
+from typing import List
 import csv
 import io
 from app.database import get_db
@@ -178,8 +179,8 @@ Create a new task in the CRM system.
 )
 def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_task = Task(
-        **task.dict(),
-        assigned_to_id=current_user.id,
+        **task.dict(exclude={"assigned_to_id"}),
+        assigned_to_id=task.assigned_to_id,
         created_by=current_user.id,
         updated_by=current_user.id
     )

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { Task } from '@/types';
+import { Activity, ACTIVITY_ICONS } from '@/types/activity';
 import toast from 'react-hot-toast';
 import { ChevronLeft, ChevronRight, Plus, Trash2, X, Check } from 'lucide-react';
 
@@ -26,6 +27,7 @@ const priorityColors: Record<string, { bg: string; text: string; dot: string }> 
 
 export default function CalendarPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -41,20 +43,24 @@ export default function CalendarPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  const fetchTasks = async () => {
+  const fetchTasksAndActivities = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/api/tasks');
-      setTasks(res.data);
+      const [tasksRes, activitiesRes] = await Promise.all([
+        api.get('/api/tasks'),
+        api.get('/api/activities'),
+      ]);
+      setTasks(tasksRes.data);
+      setActivities(activitiesRes.data);
     } catch {
-      toast.error('Failed to fetch tasks');
+      toast.error('Failed to fetch calendar data');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasksAndActivities();
   }, []);
 
   // Helper values for generating calendar
@@ -184,7 +190,7 @@ export default function CalendarPage() {
       }
 
       setModalOpen(false);
-      fetchTasks();
+      fetchTasksAndActivities();
     } catch {
       toast.error('Failed to save task');
     } finally {
@@ -201,7 +207,7 @@ export default function CalendarPage() {
       await api.delete(`/api/tasks/${selectedTask.id}`);
       toast.success('Task deleted successfully!');
       setModalOpen(false);
-      fetchTasks();
+      fetchTasksAndActivities();
     } catch {
       toast.error('Failed to delete task');
     } finally {
@@ -214,7 +220,7 @@ export default function CalendarPage() {
     try {
       await api.put(`/api/tasks/${task.id}`, { is_completed: !task.is_completed });
       toast.success(task.is_completed ? 'Task marked as pending' : 'Task marked as complete');
-      fetchTasks();
+      fetchTasksAndActivities();
     } catch {
       toast.error('Failed to update task status');
     }
@@ -297,6 +303,7 @@ export default function CalendarPage() {
             {calendarCells.map(({ date, isCurrentMonth }) => {
               const dateKey = formatLocalDate(date);
               const dayTasks = tasks.filter((t) => t.due_date && formatLocalDate(new Date(t.due_date)) === dateKey);
+              const dayActivities = activities.filter((a) => a.created_at && formatLocalDate(new Date(a.created_at)) === dateKey);
               const isToday = isSameDay(date, new Date());
 
               return (
@@ -325,7 +332,7 @@ export default function CalendarPage() {
                     </span>
                   </div>
 
-                  {/* Tasks Container */}
+                  {/* Tasks & Activities Container */}
                   <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                     {dayTasks.map((task) => {
                       const priorityStyle = priorityColors[task.priority] || priorityColors.medium;
@@ -338,7 +345,7 @@ export default function CalendarPage() {
                               ? 'bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 line-through'
                               : `${priorityStyle.bg} ${priorityStyle.text}`
                           }`}
-                          title={`${task.title}${task.description ? ` - ${task.description}` : ''}`}
+                          title={`[Task] ${task.title}${task.description ? ` - ${task.description}` : ''}`}
                         >
                           {/* Toggle Completion directly */}
                           <button
@@ -352,6 +359,20 @@ export default function CalendarPage() {
                             )}
                           </button>
                           <span className="truncate flex-1">{task.title}</span>
+                        </div>
+                      );
+                    })}
+
+                    {dayActivities.map((activity) => {
+                      const icon = ACTIVITY_ICONS[activity.type] || '📝';
+                      return (
+                        <div
+                          key={`act-${activity.id}`}
+                          className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-medium bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50 select-none truncate"
+                          title={`[Activity] ${activity.type}: ${activity.note || ''}`}
+                        >
+                          <span className="shrink-0">{icon}</span>
+                          <span className="truncate flex-1">{activity.note || activity.type}</span>
                         </div>
                       );
                     })}

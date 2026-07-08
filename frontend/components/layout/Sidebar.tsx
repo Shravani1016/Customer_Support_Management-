@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import {
   LayoutDashboard, Target, Users, Building2,
-  DollarSign, CheckSquare, Activity, BarChart3, LogOut,
+  DollarSign, CheckSquare, Activity, BarChart3, LogOut, Calendar,
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -15,9 +15,14 @@ const nav = [
   { label: 'Companies', href: '/dashboard/companies', icon: Building2 },
   { label: 'Deals', href: '/dashboard/deals', icon: DollarSign },
   { label: 'Tasks', href: '/dashboard/tasks', icon: CheckSquare },
+  { label: 'Calendar', href: '/dashboard/Calender', icon: Calendar },
   { label: 'Activities', href: '/dashboard/activities', icon: Activity },
   { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
 ];
+
+interface SidebarProps {
+  role: 'employee' | 'admin' | 'super-admin';
+}
 
 export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
@@ -125,7 +130,7 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* Brand */}
       <div className="border-b border-slate-100 dark:border-slate-700 px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
             <span className="text-sm font-bold">CF</span>
           </div>
           <div>
@@ -148,11 +153,12 @@ export default function Sidebar({ role }: SidebarProps) {
                   href={item.href}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                     active
-                      ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/20'
+                      ? 'bg-linear-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/20'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-white'
                   }`}
                 >
-                  {item.label}
+                  {Icon && <Icon size={18} className="shrink-0" />}
+                  <span>{item.label}</span>
                 </Link>
               </li>
             );
@@ -163,10 +169,18 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* User + Theme Toggle */}
       <div className="border-t border-slate-100 dark:border-slate-700 p-3">
         <div className="flex items-center gap-2 rounded-lg p-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white flex-shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white shrink-0">
             {user?.full_name?.[0]?.toUpperCase() ?? 'U'}
           </div>
-        ))}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+              {user?.full_name ?? 'User'}
+            </p>
+            <p className="text-xs font-medium uppercase tracking-wider text-indigo-600">
+              {role}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="border-t border-slate-700 pt-4 space-y-3">
