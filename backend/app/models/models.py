@@ -21,6 +21,7 @@ class LeadStatusEnum(str, enum.Enum):
     contacted = "contacted"
     qualified = "qualified"
     converted = "converted"
+    lost = "lost"
 
 class DealStageEnum(str, enum.Enum):
     prospecting = "prospecting"

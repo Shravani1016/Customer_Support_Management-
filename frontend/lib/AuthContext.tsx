@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import api from "./api";
 import { User } from "@/types";
 
@@ -17,33 +17,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Declared BEFORE the effect that uses it, and memoized so it has a
+  // stable identity across renders (fixes "accessed before declared").
+  const logout = useCallback(() => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
+    sessionStorage.removeItem("user");
+
+    setUser(null);
+    window.location.href = "/login";
+  }, []);
+
   useEffect(() => {
-    const token =
-      localStorage.getItem("access_token") ||
-      sessionStorage.getItem("access_token");
+    // All setState calls happen inside this async function instead of
+    // directly in the effect body — fixes the set-state-in-effect warning.
+    async function initAuth() {
+      const token =
+        localStorage.getItem("access_token") ||
+        sessionStorage.getItem("access_token");
 
-    const storedUser =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
+      const storedUser =
+        localStorage.getItem("user") || sessionStorage.getItem("user");
 
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    if (storedUser && storedUser !== "undefined") {
-      try {
-        setUser(JSON.parse(storedUser));
+      if (!token) {
         setLoading(false);
         return;
-      } catch {
-        logout();
-        return;
       }
-    }
 
-    api
-      .get("/api/auth/me")
-      .then((res) => {
+      if (storedUser && storedUser !== "undefined") {
+        try {
+          setUser(JSON.parse(storedUser));
+          setLoading(false);
+          return;
+        } catch {
+          logout();
+          return;
+        }
+      }
+
+      try {
+        const res = await api.get("/api/auth/me");
         setUser(res.data);
 
         if (localStorage.getItem("access_token")) {
@@ -51,12 +68,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           sessionStorage.setItem("user", JSON.stringify(res.data));
         }
-      })
-      .catch(() => {
+      } catch {
         logout();
-      })
-      .finally(() => setLoading(false));
-  }, []);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    initAuth();
+  }, [logout]);
 
   const login = async (
     email: string,
@@ -86,19 +106,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       storage.setItem("user", JSON.stringify(me.data));
       setUser(me.data);
     }
-  };
 
-  const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
+    const role = response.data.user?.role;
 
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("refresh_token");
-    sessionStorage.removeItem("user");
-
-    setUser(null);
-    window.location.href = "/login";
+    if (role === "super_admin") {
+      window.location.href = "/super-admin/dashboard";
+    } else if (role === "admin") {
+      window.location.href = "/admin/dashboard";
+    } else {
+      window.location.href = "/dashboard";
+    }
   };
 
   return (

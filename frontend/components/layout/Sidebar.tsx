@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type Role = "employee" | "admin" | "super_admin";
+import { Role } from "@/lib/roleGuard";
 
 interface SidebarProps {
   role: Role;
@@ -38,6 +38,12 @@ export default function Sidebar({ role }: SidebarProps) {
   ];
 
   const adminMenu = [
+     {
+      title: "Team",
+      items: [{ label: "Manage Employees", href: "/admin/employees" },
+      { label: "My Profile", href: "/admin/profile" }  
+      ],
+    },
     {
       title: "CRM",
       items: [
@@ -48,10 +54,6 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Deals", href: "/admin/deals" },
         { label: "My Profile", href: "/admin/profile" }
       ],
-    },
-    {
-      title: "Team",
-      items: [{ label: "Manage Employees", href: "/admin/employees" }],
     },
     {
       title: "Activities",
@@ -105,7 +107,7 @@ export default function Sidebar({ role }: SidebarProps) {
 
 
   const menu =
-    role === "employee"
+    role === "sales_rep"
       ? employeeMenu
       : role === "admin"
       ? adminMenu
