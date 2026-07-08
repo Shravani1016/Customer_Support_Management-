@@ -53,10 +53,14 @@ class CompanyResponse(BaseModel):
     website: Optional[str]
     phone: Optional[str]
     address: Optional[str]
+    is_active: bool
     created_at: datetime
-
     class Config:
         from_attributes = True
+
+
+class ActiveStatusUpdate(BaseModel):
+    is_active: bool
 
 
 class CompanyContactSummary(BaseModel):

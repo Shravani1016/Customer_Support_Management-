@@ -50,10 +50,15 @@ class ContactResponse(BaseModel):
     email: Optional[str]
     phone: Optional[str]
     company_id: Optional[int]
+    is_active: bool
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class ActiveStatusUpdate(BaseModel):
+    is_active: bool
 
 
 # ─── NEW: nested schemas for the connected detail view ──────────────

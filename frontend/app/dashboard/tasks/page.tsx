@@ -4,6 +4,8 @@ import api from '@/lib/api';
 import { Task } from '@/types';
 import toast from 'react-hot-toast';
 import { Calendar as CalendarIcon, List as ListIcon, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { usePagination } from "@/lib/usePagination";
+import Pagination from "@/components/Pagination";
 
 const priorityColors: Record<string, string> = {
   low: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300',
@@ -157,7 +159,6 @@ export default function TasksPage() {
     const prevMonthDaysTotal = getDaysInMonth(year, month - 1);
     const calendarCells: { date: Date; isCurrentMonth: boolean }[] = [];
 
-    // Fill previous month padding
     for (let i = firstDayIndex - 1; i >= 0; i--) {
       calendarCells.push({
         date: new Date(year, month - 1, prevMonthDaysTotal - i),
@@ -165,7 +166,6 @@ export default function TasksPage() {
       });
     }
 
-    // Fill current month days
     for (let i = 1; i <= totalDays; i++) {
       calendarCells.push({
         date: new Date(year, month, i),
@@ -173,8 +173,7 @@ export default function TasksPage() {
       });
     }
 
-    // Fill next month padding to make complete rows of 7
-    const remainingCells = 42 - calendarCells.length; // 6 rows max
+    const remainingCells = 42 - calendarCells.length;
     for (let i = 1; i <= remainingCells; i++) {
       calendarCells.push({
         date: new Date(year, month + 1, i),
@@ -186,7 +185,6 @@ export default function TasksPage() {
 
     return (
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl overflow-hidden shadow-md shadow-gray-200/50 dark:shadow-none p-4">
-        {/* Month Navigation */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-gray-100">
             {currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
@@ -213,14 +211,12 @@ export default function TasksPage() {
           </div>
         </div>
 
-        {/* Days of Week Header */}
         <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
             <div key={d} className="py-2">{d}</div>
           ))}
         </div>
 
-        {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-2">
           {calendarCells.map((cell, idx) => {
             const isToday =
@@ -228,7 +224,6 @@ export default function TasksPage() {
               cell.date.getMonth() === today.getMonth() &&
               cell.date.getFullYear() === today.getFullYear();
 
-            // Filter tasks for this day
             const dayTasks = tasks.filter(task => {
               if (!task.due_date) return false;
               const taskDate = new Date(task.due_date);
@@ -308,6 +303,21 @@ export default function TasksPage() {
       </div>
     );
   };
+
+  const {
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+    paginatedItems: paginatedTasks,
+    resetPage,
+  } = usePagination(filteredTasks, 10);
+
+  useEffect(() => {
+    resetPage();
+  }, [searchQuery, priorityFilter, statusFilter, resetPage]);
 
   return (
     <div>
@@ -446,7 +456,7 @@ export default function TasksPage() {
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
                   className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-                >
+                  >
                   <option value="all">All Statuses</option>
                   <option value="done">Done</option>
                   <option value="pending">Pending</option>
@@ -454,7 +464,7 @@ export default function TasksPage() {
               </div>
 
               {(searchQuery || priorityFilter !== 'all' || statusFilter !== 'all') && (
-                <button onClick={handleClearFilters} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
+                <button onClick={handleClearFilters} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
                   Clear Filters
                 </button>
               )}
@@ -462,16 +472,19 @@ export default function TasksPage() {
           </div>
 
           <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-            {tasks.length === 0
-              ? 'No tasks available'
-              : `Showing ${filteredTasks.length} of ${tasks.length} tasks`}
+            {totalItems === 0
+              ? "No tasks available"
+              : `Showing ${(page - 1) * pageSize + 1} to ${Math.min(
+                  page * pageSize,
+                  totalItems
+                )} of ${totalItems} tasks`}
           </div>
 
           <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-lg overflow-hidden shadow-md shadow-gray-200/50 dark:shadow-none">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300 text-left">
                 <tr>
-                  {['Done', 'Title', 'Description', 'Due Date', 'Priority', 'Status', 'Actions'].map(h => (
+                  {['Done', 'Title', 'Description', 'Priority', 'Due Date', 'Status', 'Actions'].map(h => (
                     <th key={h} className="p-3 font-medium">{h}</th>
                   ))}
                 </tr>
@@ -482,28 +495,26 @@ export default function TasksPage() {
                 ) : filteredTasks.length === 0 ? (
                   <tr><td colSpan={7} className="p-6 text-center text-gray-400 dark:text-gray-500">No tasks match your search criteria.</td></tr>
                 ) : (
-                  filteredTasks.map(task => (
+                  paginatedTasks.map(task => (
                     <tr key={task.id} className="border-t dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                       <td className="p-3">
                         <input
                           type="checkbox"
                           checked={task.is_completed}
                           onChange={() => handleComplete(task)}
-                          className="w-4 h-4 accent-indigo-600 cursor-pointer"
+                          className="w-4 h-4 accent-indigo-600"
                         />
                       </td>
                       <td className={`p-3 font-medium ${task.is_completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-slate-900 dark:text-gray-100'}`}>
                         {task.title}
                       </td>
                       <td className="p-3 text-gray-600 dark:text-gray-400">{task.description || '—'}</td>
-                      <td className="p-3 text-gray-600 dark:text-gray-400 font-medium">
-                        {formatFriendlyDate(task.due_date)}
-                      </td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
                           {task.priority}
                         </span>
                       </td>
+                      <td className="p-3 text-gray-600 dark:text-gray-400">{formatFriendlyDate(task.due_date)}</td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[task.is_completed ? 'done' : 'pending']}`}>
                           {task.is_completed ? 'Done' : 'Pending'}
@@ -522,6 +533,17 @@ export default function TasksPage() {
                 )}
               </tbody>
             </table>
+
+            {totalItems > 0 && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+              />
+            )}
           </div>
         </>
       )}

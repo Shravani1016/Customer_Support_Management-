@@ -58,10 +58,15 @@ class LeadResponse(BaseModel):
     source: Optional[str]
     company_name: Optional[str] = None  # NEW
     owner_id: Optional[int]
+    is_active: bool
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class ActiveStatusUpdate(BaseModel):
+    is_active: bool
 
 
 # ─── NEW: response for the conversion action ─────────────────────────

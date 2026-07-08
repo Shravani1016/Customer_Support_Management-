@@ -1,13 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from typing import List
 from pydantic import BaseModel
 import csv
 import io
 from app.database import get_db
 from app.models.models import Deal, DealStageEnum
-from app.schemas.deal import DealCreate, DealUpdate, DealResponse
+from app.schemas.deal import (
+    DealCreate, DealUpdate, DealResponse,
+    DealContactSummary, DealOwnerSummary, DealDetailResponse, ActiveStatusUpdate,
+)
 from app.dependencies import get_current_user
 from app.models.models import User
 
@@ -95,12 +99,71 @@ def export_deals_csv(db: Session = Depends(get_db), current_user: User = Depends
         headers={"Content-Disposition": "attachment; filename=deals.csv"},
     )
 
-from app.schemas.deal import (
-    DealCreate, DealUpdate, DealResponse,
-    DealContactSummary, DealOwnerSummary, DealDetailResponse,
-)
 
-# ... (keep your existing imports/router/endpoints exactly as they are) ...
+@router.get(
+    "/trash",
+    response_model=List[DealResponse],
+    summary="List deleted deals",
+    description="Returns all soft-deleted deals, most recently deleted first.",
+)
+def get_deleted_deals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Deal)
+        .filter(Deal.is_deleted == True)
+        .order_by(Deal.deleted_at.desc())
+        .all()
+    )
+
+
+@router.post(
+    "/{deal_id}/restore",
+    response_model=DealResponse,
+    summary="Restore a deleted deal",
+    description="Restores a soft-deleted deal by setting is_deleted = False and clearing deleted_at.",
+)
+def restore_deal(
+    deal_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deal = (
+        db.query(Deal)
+        .filter(Deal.id == deal_id, Deal.is_deleted == True)
+        .first()
+    )
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deleted deal not found")
+
+    deal.is_deleted = False
+    deal.deleted_at = None
+    db.commit()
+    db.refresh(deal)
+
+    return deal
+
+@router.patch(
+    "/{deal_id}/active",
+    response_model=DealResponse,
+    summary="Toggle active/inactive status",
+    description="Sets is_active to true or false for this deal.",
+)
+def update_deal_active_status(
+    deal_id: int,
+    status_update: ActiveStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deal = db.query(Deal).filter(Deal.id == deal_id, Deal.is_deleted == False).first()
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deal not found")
+    deal.is_active = status_update.is_active
+    deal.updated_by = current_user.id
+    db.commit()
+    db.refresh(deal)
+    return deal
 
 @router.get(
     "/detail",
@@ -128,18 +191,21 @@ def get_deals_detail(db: Session = Depends(get_db), current_user: User = Depends
         if deal.owner:
             owner_summary = DealOwnerSummary(id=deal.owner.id, full_name=deal.owner.full_name)
 
-        results.append(DealDetailResponse(
-            id=deal.id,
-            title=deal.title,
-            value=deal.value,
-            stage=deal.stage,
-            contact_id=deal.contact_id,
-            owner_id=deal.owner_id,
-            expected_close_date=deal.expected_close_date,
-            created_at=deal.created_at,
-            contact=contact_summary,
-            owner=owner_summary,
-        ))
+        results.append(
+    DealDetailResponse(
+        id=deal.id,
+        title=deal.title,
+        value=deal.value,
+        stage=deal.stage,
+        contact_id=deal.contact_id,
+        owner_id=deal.owner_id,
+        expected_close_date=deal.expected_close_date,
+        is_active=deal.is_active,
+        created_at=deal.created_at,
+        contact=contact_summary,
+        owner=owner_summary,
+    )
+)
     return results
 
 @router.get(
@@ -228,4 +294,7 @@ def delete_deal(deal_id: int, db: Session = Depends(get_db), current_user: User 
     if not deal:
         raise HTTPException(status_code=404, detail="Deal not found")
     deal.is_deleted = True
+    deal.deleted_at = func.now()
+    deal.updated_by = current_user.id
     db.commit()
+    return None

@@ -6,6 +6,7 @@ export interface Deal {
   contact_id: number | null;
   owner_id: number | null;
   expected_close_date: string | null;
+  is_active: boolean;
   created_at: string;
 }
 

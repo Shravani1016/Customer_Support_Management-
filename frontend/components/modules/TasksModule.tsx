@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { Task } from '@/types';
 import toast from 'react-hot-toast';
+import { usePagination } from "@/lib/usePagination";
+import Pagination from "@/components/Pagination";
 
 const priorityColors: Record<string, string> = {
   low: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300',
@@ -140,6 +142,21 @@ export default function TasksModule() {
     return matchesSearch && matchesPriority && matchesStatus;
   });
 
+  const {
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+    paginatedItems: paginatedTasks,
+    resetPage,
+  } = usePagination(filteredTasks, 10);
+
+  useEffect(() => {
+    resetPage();
+  }, [searchQuery, priorityFilter, statusFilter, resetPage]);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -265,8 +282,11 @@ export default function TasksModule() {
 
           <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
             {tasks.length === 0
-              ? 'No tasks available'
-              : `Showing ${filteredTasks.length} of ${tasks.length} tasks`}
+              ? "No tasks available"
+              : `Showing ${(page - 1) * pageSize + 1} to ${Math.min(
+                  page * pageSize,
+                  totalItems
+                )} of ${totalItems} tasks`}
           </div>
 
           <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-lg overflow-hidden shadow-md shadow-gray-200/50 dark:shadow-none">
@@ -284,7 +304,7 @@ export default function TasksModule() {
                 ) : filteredTasks.length === 0 ? (
                   <tr><td colSpan={6} className="p-6 text-center text-gray-400 dark:text-gray-500">No tasks match your search criteria.</td></tr>
                 ) : (
-                  filteredTasks.map(task => (
+                  paginatedTasks.map(task => (
                     <tr key={task.id} className="border-t dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                       <td className="p-3">
                         <input
@@ -329,6 +349,17 @@ export default function TasksModule() {
                 )}
               </tbody>
             </table>
+
+            {totalItems > 0 && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+              />
+            )}
           </div>
         </>
       )}

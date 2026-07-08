@@ -1,21 +1,19 @@
 'use client';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Deal } from '@/types/deal';
+import { DealDetail } from '@/types/deal';
 import DealCard from './DealCard';
-
 interface Props {
   id: string;
   label: string;
   color: string;
-  deals: Deal[];
-  onEdit?: (deal: Deal) => void;
+  deals: DealDetail[];
+  onEdit?: (deal: DealDetail) => void;
+  onToggleActive?: (deal: DealDetail) => void;
 }
-
-export default function KanbanColumn({ id, label, color, deals, onEdit }: Props) {
+export default function KanbanColumn({ id, label, color, deals, onEdit, onToggleActive }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const totalValue = deals.reduce((sum, d) => sum + d.value, 0);
-
   return (
     <div className="flex-1 min-w-[280px]">
       <div className="flex items-center justify-between px-1 mb-3">
@@ -30,7 +28,6 @@ export default function KanbanColumn({ id, label, color, deals, onEdit }: Props)
           ${totalValue.toLocaleString()}
         </span>
       </div>
-
       <div
         ref={setNodeRef}
         className={`min-h-[420px] p-2.5 rounded-xl border transition-colors ${
@@ -46,7 +43,7 @@ export default function KanbanColumn({ id, label, color, deals, onEdit }: Props)
             </div>
           ) : (
             deals.map((deal) => (
-              <DealCard key={deal.id} deal={deal} color={color} onEdit={onEdit} />
+              <DealCard key={deal.id} deal={deal} color={color} onEdit={onEdit} onToggleActive={onToggleActive} />
             ))
           )}
         </SortableContext>

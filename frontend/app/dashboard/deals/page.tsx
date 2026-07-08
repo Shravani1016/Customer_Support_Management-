@@ -13,53 +13,68 @@ import {
   DragOverlay,
 } from '@dnd-kit/core';
 import api from '@/lib/api';
-import { Deal, DealDetail, STAGES } from '@/types/deal';
+import { DealDetail, STAGES } from '@/types/deal';
 import KanbanColumn from '@/components/KanbanColumn';
 import DealCard from '@/components/DealCard';
 import AddDealModal from '@/components/AddDealModal';
 import toast from 'react-hot-toast';
+import { usePagination } from "@/lib/usePagination";
+import Pagination from "@/components/Pagination";
 
-type ViewMode = 'pipeline' | 'table';
+const stageColorMap: Record<string, string> = Object.fromEntries(STAGES.map(s => [s.id, s.color]));
+const stageLabelMap: Record<string, string> = Object.fromEntries(STAGES.map(s => [s.id, s.label]));
 
 export default function DealsPage() {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [dealDetails, setDealDetails] = useState<DealDetail[]>([]);
+  const [deals, setDeals] = useState<DealDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
-  const [view, setView] = useState<ViewMode>('table');
+  const [activeDeal, setActiveDeal] = useState<DealDetail | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [stageFilter, setStageFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('table');
+  const [editingDeal, setEditingDeal] = useState<DealDetail | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const fetchDeals = async () => {
+  try {
+    setLoading(true);
+
+    const res = await api.get('/api/deals/detail');  
+
+    setDeals(res.data);
+  } catch (err) {
+   
+    toast.error('Failed to load deals');
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => { fetchDeals(); }, []);
+
+  const handleToggleActive = async (deal: DealDetail) => {
     try {
-      setLoading(true);
-      const res = await api.get('/api/deals/');
-      setDeals(res.data);
+      await api.patch(`/api/deals/${deal.id}/active`, { is_active: !deal.is_active });
+      toast.success(`Marked ${deal.is_active ? 'inactive' : 'active'}`);
+      fetchDeals();
     } catch {
-      toast.error('Failed to load deals');
-    } finally {
-      setLoading(false);
+      toast.error('Failed to update status');
     }
   };
 
-  const fetchDealDetails = async () => {
+  const handleDelete = async (id: number) => {
     try {
-      const res = await api.get('/api/deals/detail');
-      setDealDetails(res.data);
+      await api.delete(`/api/deals/${id}`);
+      toast.success('Deal deleted!');
+      fetchDeals();
     } catch {
-      toast.error('Failed to load deal details');
+      toast.error('Failed to delete deal');
     }
   };
-
-  useEffect(() => {
-    fetchDeals();
-    fetchDealDetails();
-  }, []);
 
   const exportCSV = async () => {
     try {
@@ -77,8 +92,43 @@ export default function DealsPage() {
     }
   };
 
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setStageFilter('all');
+    setActiveFilter('all');
+  };
+
+  const filteredDeals = deals.filter(deal => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query || deal.title.toLowerCase().includes(query);
+
+    const matchesStage = stageFilter === 'all' || deal.stage === stageFilter;
+
+    const matchesActive =
+      activeFilter === 'all' ||
+      (activeFilter === 'active' && deal.is_active) ||
+      (activeFilter === 'inactive' && !deal.is_active);
+
+    return matchesSearch && matchesStage && matchesActive;
+  });
+
+const {
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  paginatedItems: paginatedDeals,
+  resetPage,
+} = usePagination(filteredDeals, 10);
+
+useEffect(() => {
+  resetPage();
+}, [searchQuery, stageFilter, activeFilter]);
+
   const getDealsByStage = (stageId: string) =>
-    deals.filter((d) => d.stage === stageId);
+    filteredDeals.filter((d) => d.stage === stageId);
 
   const handleDragStart = (event: DragStartEvent) => {
     const deal = deals.find((d) => d.id === event.active.id);
@@ -99,7 +149,7 @@ export default function DealsPage() {
     if (overStage && activeDealItem.stage !== overStage.id) {
       setDeals((prev) =>
         prev.map((d) =>
-          d.id === activeId ? { ...d, stage: overStage.id as Deal['stage'] } : d
+          d.id === activeId ? { ...d, stage: overStage.id as DealDetail['stage'] } : d
         )
       );
     } else {
@@ -132,28 +182,13 @@ export default function DealsPage() {
     }
   };
 
-  const filteredDealDetails = dealDetails.filter((deal) => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    return (
-      deal.title.toLowerCase().includes(query) ||
-      (deal.contact?.company_name?.toLowerCase().includes(query)) ||
-      (deal.contact && `${deal.contact.first_name} ${deal.contact.last_name}`.toLowerCase().includes(query)) ||
-      (deal.contact?.email?.toLowerCase().includes(query))
-    );
-  });
   const totalValue = deals.reduce((sum, d) => sum + d.value, 0);
   const wonDeals = deals.filter((d) => d.stage === 'closed_won');
   const wonValue = wonDeals.reduce((sum, d) => sum + d.value, 0);
 
-  const stageLabel = (stage: string) =>
-    STAGES.find((s) => s.id === stage)?.label || stage;
-
-  const stageColor = (stage: string) =>
-    STAGES.find((s) => s.id === stage)?.color || '#94a3b8';
-
   return (
     <div>
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Deals Pipeline</h1>
@@ -161,24 +196,24 @@ export default function DealsPage() {
             {deals.length} deals · Total: ${totalValue.toLocaleString()} · Won: ${wonValue.toLocaleString()}
           </p>
         </div>
-        <div className="flex gap-2 items-center">
-          <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mr-2">
             <button
-              onClick={() => setView('pipeline')}
-              className={`px-4 py-2 text-sm font-medium transition ${
-                view === 'pipeline'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              onClick={() => setViewMode('kanban')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
+                viewMode === 'kanban'
+                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400'
               }`}
             >
-              Pipeline
+              Kanban
             </button>
             <button
-              onClick={() => setView('table')}
-              className={`px-4 py-2 text-sm font-medium transition ${
-                view === 'table'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
+                viewMode === 'table'
+                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400'
               }`}
             >
               Table
@@ -203,161 +238,205 @@ export default function DealsPage() {
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
         </div>
-      ) : view === 'pipeline' ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {STAGES.map((stage) => (
-              <KanbanColumn
-                key={stage.id}
-                id={stage.id}
-                label={stage.label}
-                color={stage.color}
-                deals={getDealsByStage(stage.id)}
-              />
-            ))}
-          </div>
-
-          <DragOverlay>
-            {activeDeal ? <DealCard deal={activeDeal} /> : null}
-          </DragOverlay>
-        </DndContext>
-      ) : (
+      ) : viewMode === 'kanban' ? (
         <>
-          <div className="relative w-full md:w-96 mb-4">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Search by company, contact, or deal title..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 h-10 w-full border dark:border-gray-600 rounded-lg text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-900"
-            />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/80 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-700">
-                    {['Company', 'Contact', 'Email', 'Stage', 'Value', 'Owner', 'Close Date', 'Actions'].map((h) => (
-                      <th
-                        key={h}
-                        className="text-left px-5 py-3.5 font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {filteredDealDetails.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="text-center py-16 text-gray-400 dark:text-gray-500">
-                        No deals match your search.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredDealDetails.map((deal, idx) => (
-                      <tr
-                        key={deal.id}
-                        className={`transition-colors hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 ${
-                          idx % 2 === 1 ? 'bg-gray-50/40 dark:bg-gray-900/20' : ''
-                        }`}
-                      >
-                        <td className="px-5 py-4">
-                          <span className="font-semibold text-gray-800 dark:text-gray-100">
-                            {deal.contact?.company_name || (
-                              <span className="font-normal text-gray-300 dark:text-gray-600">—</span>
-                            )}
-                          </span>
-                        </td>
-
-                        <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                          {deal.contact
-                            ? `${deal.contact.first_name} ${deal.contact.last_name}`
-                            : <span className="text-gray-300 dark:text-gray-600">—</span>}
-                        </td>
-
-                        <td className="px-5 py-4 text-gray-500 dark:text-gray-400">
-                          {deal.contact?.email || <span className="text-gray-300 dark:text-gray-600">—</span>}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <span
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                            style={{
-                              backgroundColor: `${stageColor(deal.stage)}1A`,
-                              color: stageColor(deal.stage),
-                            }}
-                          >
-                            <span
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{ backgroundColor: stageColor(deal.stage) }}
-                            />
-                            {stageLabel(deal.stage)}
-                          </span>
-                        </td>
-
-                        <td className="px-5 py-4 font-semibold text-gray-800 dark:text-gray-100 tabular-nums">
-                          {deal.value > 0
-                            ? `$${deal.value.toLocaleString()}`
-                            : <span className="font-normal text-gray-300 dark:text-gray-600">$0</span>}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          {deal.owner ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white text-[10px] font-semibold shrink-0">
-                                {deal.owner.full_name.charAt(0).toUpperCase()}
-                              </div>
-                              <span className="text-gray-600 dark:text-gray-300">{deal.owner.full_name}</span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-300 dark:text-gray-600">—</span>
-                          )}
-                        </td>
-
-                        <td className="px-5 py-4 text-gray-500 dark:text-gray-400 tabular-nums">
-                          {deal.expected_close_date
-                            ? new Date(deal.expected_close_date).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                              })
-                            : <span className="text-gray-300 dark:text-gray-600">—</span>}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <button
-                            onClick={() => setEditingDeal(deal as unknown as Deal)}
-                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-xs px-2 py-1 rounded-md transition font-medium"
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none flex flex-wrap items-center gap-4 justify-end">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Active:</span>
+              <select
+                value={activeFilter}
+                onChange={e => setActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
             </div>
           </div>
+
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {STAGES.map((stage) => (
+  <KanbanColumn
+          key={stage.id}
+          id={stage.id}
+          label={stage.label}
+          color={stage.color}
+          deals={getDealsByStage(stage.id)}
+          onEdit={(deal) => setEditingDeal(deal)}
+          onToggleActive={handleToggleActive}
+        />
+))}
+            </div>
+
+            <DragOverlay>
+              {activeDeal ? <DealCard deal={activeDeal} /> : null}
+            </DragOverlay>
+          </DndContext>
+        </>
+      ) : (
+        <>
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-xl p-4 mb-6 shadow-md shadow-gray-200/50 dark:shadow-none flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            <div className="relative w-full md:w-96 shrink-0">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </span>
+              <input
+                type="text"
+                placeholder="Search by deal title..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 h-10 w-full border dark:border-gray-600 rounded-lg text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 dark:bg-gray-900 hover:bg-gray-100/50 dark:hover:bg-gray-900/70 transition-colors"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 justify-start md:justify-end">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Stage:</span>
+                <select
+                  value={stageFilter}
+                  onChange={e => setStageFilter(e.target.value)}
+                  className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
+                >
+                  <option value="all">All Stages</option>
+                  {STAGES.map(s => (
+                    <option key={s.id} value={s.id}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Active:</span>
+                <select
+                  value={activeFilter}
+                  onChange={e => setActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
+                >
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {(searchQuery || stageFilter !== 'all' || activeFilter !== 'all') && (
+                <button
+                  onClick={handleClearFilters}
+                   className="h-10 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors px-2 hover:underline"
+                  >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center px-1 mb-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+              {deals.length === 0
+                ? 'No deals available'
+                : `Showing ${paginatedDeals.length} of ${filteredDeals.length} deals`}
+            </span>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-md shadow-gray-200/50 dark:shadow-none overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300 border-b dark:border-gray-700">
+                <tr>
+                  {['Title', 'Value', 'Stage', 'Contact', 'Owner', 'Expected Close', 'Actions'].map(h => (
+                    <th key={h} className="text-left px-4 py-3 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {deals.length === 0 ? (
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-400 dark:text-gray-500">No deals yet.</td></tr>
+                ) : filteredDeals.length === 0 ? (
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-400 dark:text-gray-500">No deals match your search criteria.</td></tr>
+                ) : (
+                  paginatedDeals.map(deal => (
+                    <tr key={deal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{deal.title}</td>
+                      <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
+                        ${deal.value.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                          style={{ backgroundColor: stageColorMap[deal.stage] }}
+                        >
+                          {stageLabelMap[deal.stage]}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                        {deal.contact ? `${deal.contact.first_name} ${deal.contact.last_name}` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                        {deal.owner ? deal.owner.full_name : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                        {deal.expected_close_date
+                          ? new Date(deal.expected_close_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+  <button
+    onClick={() => setEditingDeal(deal)}
+    className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-xs px-2 py-1 rounded-md transition"
+  >
+    Edit
+  </button>
+
+  <button
+    onClick={() => handleToggleActive(deal)}
+    className={`text-xs px-2 py-1 rounded-md transition whitespace-nowrap ${
+      deal.is_active
+        ? "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-500/10"
+        : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+    }`}
+  >
+    {deal.is_active ? "● Active" : "○ Inactive"}
+  </button>
+
+  <button
+    onClick={() => handleDelete(deal.id)}
+    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs px-2 py-1 rounded-md transition"
+  >
+    Delete
+  </button>
+</div>
+            </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+  page={page}
+  totalPages={totalPages}
+  pageSize={pageSize}
+  totalItems={totalItems}
+  onPageChange={setPage}
+  onPageSizeChange={setPageSize}
+/>
         </>
       )}
+
+      {/* Add/Edit Deal Modal */}
       {(showAddModal || editingDeal) && (
         <AddDealModal
           deal={editingDeal}
           onClose={() => { setShowAddModal(false); setEditingDeal(null); }}
-          onSaved={() => { fetchDeals(); fetchDealDetails(); setEditingDeal(null); }}
+          onSaved={() => { fetchDeals(); setEditingDeal(null); }}
         />
       )}
     </div>

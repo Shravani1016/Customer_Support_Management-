@@ -6,6 +6,8 @@ import api from '@/lib/api';
 import { Company } from '@/types';
 import toast from 'react-hot-toast';
 import { getErrorMessage } from '@/lib/errorMessage';
+import { usePagination } from '@/lib/usePagination';
+import Pagination from '@/components/Pagination';
 
 const emptyForm = { name: '', email: '', industry: '', website: '', phone: '', address: '' };
 
@@ -16,6 +18,7 @@ export default function CompaniesModule() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [industryFilter, setIndustryFilter] = useState('all');
@@ -86,10 +89,21 @@ export default function CompaniesModule() {
     }
   };
 
+  const handleToggleActive = async (company: Company) => {
+  try {
+    await api.patch(`/api/companies/${company.id}/active`, { is_active: !company.is_active });
+    toast.success(`Marked ${company.is_active ? 'inactive' : 'active'}`);
+    fetchCompanies();
+  } catch {
+    toast.error('Failed to update status');
+  }
+};
+
   const handleClearFilters = () => {
-    setSearchQuery('');
-    setIndustryFilter('all');
-  };
+  setSearchQuery('');
+  setIndustryFilter('all');
+  setActiveFilter('all');
+};
 
   const exportCSV = async () => {
     try {
@@ -112,18 +126,38 @@ export default function CompaniesModule() {
   ).sort();
 
   const filteredCompanies = companies.filter(company => {
-    const query = searchQuery.toLowerCase().trim();
+  const query = searchQuery.toLowerCase().trim();
 
-    const matchesSearch = !query ||
-      company.name.toLowerCase().includes(query) ||
-      (company.website && company.website.toLowerCase().includes(query)) ||
-      (company.phone && company.phone.toLowerCase().includes(query));
+  const matchesSearch = !query ||
+    company.name.toLowerCase().includes(query) ||
+    (company.website && company.website.toLowerCase().includes(query)) ||
+    (company.phone && company.phone.toLowerCase().includes(query));
 
-    const companyIndustry = company.industry?.trim() || '';
-    const matchesIndustry = industryFilter === 'all' || companyIndustry === industryFilter;
+  const companyIndustry = company.industry?.trim() || '';
+  const matchesIndustry = industryFilter === 'all' || companyIndustry === industryFilter;
 
-    return matchesSearch && matchesIndustry;
-  });
+  const matchesActive =
+    activeFilter === 'all' ||
+    (activeFilter === 'active' && company.is_active) ||
+    (activeFilter === 'inactive' && !company.is_active);
+
+  return matchesSearch && matchesIndustry && matchesActive;
+});
+
+const {
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  paginatedItems: paginatedCompanies,
+  resetPage,
+} = usePagination(filteredCompanies, 10);
+
+useEffect(() => {
+  resetPage();
+}, [searchQuery, industryFilter, activeFilter]);
 
   return (
     <div>
@@ -184,6 +218,7 @@ export default function CompaniesModule() {
               className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black dark:text-white dark:bg-gray-900"
             />
           </div>
+          
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleSave}
@@ -241,7 +276,20 @@ export default function CompaniesModule() {
                 </select>
               </div>
 
-              {(searchQuery || industryFilter !== 'all') && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Active:</span>
+                <select
+                  value={activeFilter}
+                  onChange={e => setActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
+                >
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {(searchQuery || industryFilter !== 'all' || activeFilter !== 'all') && (
                 <button
                   onClick={handleClearFilters}
                   className="h-10 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors px-2 hover:underline cursor-pointer flex items-center"
@@ -256,7 +304,7 @@ export default function CompaniesModule() {
             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
               {companies.length === 0
                 ? 'No companies available'
-                : `Showing ${filteredCompanies.length} of ${companies.length} companies`}
+                : `Showing {totalItems} of {companies.length} companies`}
             </span>
           </div>
 
@@ -275,7 +323,7 @@ export default function CompaniesModule() {
                 ) : filteredCompanies.length === 0 ? (
                   <tr><td colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-500">No companies match your search criteria.</td></tr>
                 ) : (
-                  filteredCompanies.map(company => (
+                  paginatedCompanies.map(company => (
                     <tr
                       key={company.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -291,6 +339,18 @@ export default function CompaniesModule() {
                       <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{company.phone || '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
+
+                          <button
+  onClick={() => handleToggleActive(company)}
+  className={`text-xs px-2 py-1 rounded-md transition ${
+    company.is_active
+      ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-500/10'
+      : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+  }`}
+>
+  {company.is_active ? '● Active' : '○ Inactive'}
+</button>
+
                           <button
                             onClick={() => openEditForm(company)}
                             className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-xs px-2 py-1 rounded-md transition"
@@ -311,6 +371,14 @@ export default function CompaniesModule() {
               </tbody>
             </table>
           </div>
+          <Pagination
+  page={page}
+  totalPages={totalPages}
+  pageSize={pageSize}
+  totalItems={totalItems}
+  onPageChange={setPage}
+  onPageSizeChange={setPageSize}
+/>
         </>
       )}
     </div>

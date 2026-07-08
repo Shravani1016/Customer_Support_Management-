@@ -15,6 +15,7 @@ export interface Lead {
   source?: string;
   owner_id?: number;
   company_name?: string;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -25,6 +26,7 @@ export interface Contact {
   email?: string;
   phone?: string;
   company_id?: number;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -34,6 +36,7 @@ export interface Company {
   industry?: string;
   website?: string;
   phone?: string;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -44,6 +47,7 @@ export interface Deal {
   stage: 'prospecting' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
   contact_id?: number;
   owner_id?: number;
+  is_active: boolean;
   created_at: string;
 }
 

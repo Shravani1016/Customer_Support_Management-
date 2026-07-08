@@ -65,6 +65,51 @@ def export_tasks_csv(db: Session = Depends(get_db), current_user: User = Depends
     )
 
 
+@router.get(
+    "/trash",
+    response_model=list[TaskResponse],
+    summary="List deleted tasks",
+    description="Returns all soft-deleted tasks, most recently deleted first.",
+)
+def get_deleted_tasks(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Task)
+        .filter(Task.is_deleted == True)
+        .order_by(Task.deleted_at.desc())
+        .all()
+    )
+
+
+@router.post(
+    "/{task_id}/restore",
+    response_model=TaskResponse,
+    summary="Restore a deleted task",
+    description="Restores a soft-deleted task by setting is_deleted = False and clearing deleted_at.",
+)
+def restore_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = (
+        db.query(Task)
+        .filter(Task.id == task_id, Task.is_deleted == True)
+        .first()
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail="Deleted task not found")
+
+    task.is_deleted = False
+    task.deleted_at = None
+    db.commit()
+    db.refresh(task)
+
+    return task
+
+
 @router.post("/", response_model=TaskResponse)
 def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_task = Task(

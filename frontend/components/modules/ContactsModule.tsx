@@ -4,6 +4,8 @@ import api from '@/lib/api';
 import PhoneInput from '@/components/PhoneInput';
 import { Contact } from '@/types';
 import toast from 'react-hot-toast';
+import { usePagination } from '@/lib/usePagination';
+import Pagination from '@/components/Pagination';
 
 const AVATAR_COLORS = [
   'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
@@ -32,7 +34,7 @@ export default function ContactsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
-
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchContacts = async () => {
@@ -99,6 +101,16 @@ export default function ContactsPage() {
     }
   };
 
+  const handleToggleActive = async (contact: Contact) => {
+    try {
+      await api.patch(`/api/contacts/${contact.id}/active`, { is_active: !contact.is_active });
+      toast.success(`Marked ${contact.is_active ? 'inactive' : 'active'}`);
+      fetchContacts();
+    } catch {
+      toast.error('Failed to update status');
+    }
+  };
+
   const exportCSV = async () => {
     try {
       const res = await api.get('/api/contacts/export', { responseType: 'blob' });
@@ -117,12 +129,26 @@ export default function ContactsPage() {
 
   const filteredContacts = contacts.filter(contact => {
     const query = searchQuery.toLowerCase().trim();
-    return !query ||
+    const matchesSearch = !query ||
       contact.first_name.toLowerCase().includes(query) ||
       contact.last_name.toLowerCase().includes(query) ||
       (contact.email && contact.email.toLowerCase().includes(query)) ||
       (contact.phone && contact.phone.toLowerCase().includes(query));
+
+    const matchesActive =
+      activeFilter === 'all' ||
+      (activeFilter === 'active' && contact.is_active) ||
+      (activeFilter === 'inactive' && !contact.is_active);
+
+    return matchesSearch && matchesActive;
   });
+
+  const {
+    page, setPage, pageSize, setPageSize,
+    totalPages, totalItems, paginatedItems: paginatedContacts, resetPage,
+  } = usePagination(filteredContacts, 10);
+
+  useEffect(() => { resetPage(); }, [searchQuery, activeFilter]);
 
   return (
     <div>
@@ -211,22 +237,29 @@ export default function ContactsPage() {
               />
             </div>
 
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="h-10 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors px-2 hover:underline cursor-pointer flex items-center justify-start md:justify-end"
-              >
-                Clear Search
-              </button>
-            )}
-          </div>
+            <div className="flex flex-wrap items-center gap-4 justify-start md:justify-end">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Active:</span>
+                <select
+                  value={activeFilter}
+                  onChange={e => setActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  className="h-10 border dark:border-gray-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
+                >
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
 
-          <div className="flex justify-between items-center px-1 mb-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-              {contacts.length === 0
-                ? 'No contacts available'
-                : `Showing ${filteredContacts.length} of ${contacts.length} contacts`}
-            </span>
+              {(searchQuery || activeFilter !== 'all') && (
+                <button
+                  onClick={() => { setSearchQuery(''); setActiveFilter('all'); }}
+                  className="h-10 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors px-2 hover:underline cursor-pointer flex items-center"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-md shadow-gray-200/50 dark:shadow-none overflow-hidden">
@@ -244,7 +277,7 @@ export default function ContactsPage() {
                 ) : filteredContacts.length === 0 ? (
                   <tr><td colSpan={4} className="text-center py-8 text-gray-400 dark:text-gray-500">No contacts match your search criteria.</td></tr>
                 ) : (
-                  filteredContacts.map(contact => {
+                  paginatedContacts.map(contact => {
                     const fullName = `${contact.first_name} ${contact.last_name}`;
                     return (
                       <tr key={contact.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -260,6 +293,16 @@ export default function ContactsPage() {
                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{contact.phone || '—'}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleToggleActive(contact)}
+                              className={`text-xs px-2 py-1 rounded-md transition ${
+                                contact.is_active
+                                  ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-500/10'
+                                  : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              {contact.is_active ? '● Active' : '○ Inactive'}
+                            </button>
                             <button
                               onClick={() => openEditForm(contact)}
                               className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-xs px-2 py-1 rounded-md transition"
@@ -281,6 +324,15 @@ export default function ContactsPage() {
               </tbody>
             </table>
           </div>
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </>
       )}
     </div>

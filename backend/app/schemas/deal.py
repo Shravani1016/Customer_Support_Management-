@@ -43,46 +43,39 @@ class DealUpdate(BaseModel):
     expected_close_date: Optional[datetime] = None
 
 class DealResponse(BaseModel):
-
     id: int
-
     title: str
-
     value: float
-
     stage: DealStageEnum
-
     contact_id: Optional[int]
-
     owner_id: Optional[int]
-
     expected_close_date: Optional[datetime]
-
+    is_active: bool
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 
 class DealContactSummary(BaseModel):
     id: int
     first_name: str
     last_name: str
-    email: Optional[str]
+    email: str
     company_id: Optional[int]
-    company_name: Optional[str] = None
-
-    class Config:
-        from_attributes = True
+    company_name: Optional[str]
 
 
 class DealOwnerSummary(BaseModel):
     id: int
     full_name: str
 
-    class Config:
-        from_attributes = True
-
 
 class DealDetailResponse(DealResponse):
     contact: Optional[DealContactSummary] = None
     owner: Optional[DealOwnerSummary] = None
+class ActiveStatusUpdate(BaseModel):
+    is_active: bool
 
     class Config:
         from_attributes = True

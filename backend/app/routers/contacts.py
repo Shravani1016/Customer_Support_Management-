@@ -9,7 +9,7 @@ import io
 from app.database import get_db
 from app.models.models import Contact, Company, Deal, Task, Activity
 from app.schemas.contact import (
-    ContactCreate, ContactUpdate, ContactResponse, ContactDetailResponse,
+    ContactCreate, ContactUpdate, ContactResponse, ContactDetailResponse, ActiveStatusUpdate,
 )
 from app.dependencies import get_current_user
 from app.models.models import User
@@ -54,10 +54,8 @@ def export_contacts_csv(db: Session = Depends(get_db), current_user: User = Depe
     output = io.StringIO()
     writer = csv.writer(output)
 
-    # Write header row
     writer.writerow(["ID", "First Name", "Last Name", "Email", "Phone", "Created At"])
 
-    # Write data rows
     for contact in contacts:
         writer.writerow([
             contact.id,
@@ -75,6 +73,71 @@ def export_contacts_csv(db: Session = Depends(get_db), current_user: User = Depe
         headers={"Content-Disposition": "attachment; filename=contacts.csv"},
     )
 
+
+@router.get(
+    "/trash",
+    response_model=List[ContactResponse],
+    summary="List deleted contacts",
+    description="Returns all soft-deleted contacts, most recently deleted first.",
+)
+def get_deleted_contacts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Contact)
+        .filter(Contact.is_deleted == True)
+        .order_by(Contact.deleted_at.desc())
+        .all()
+    )
+
+
+@router.post(
+    "/{contact_id}/restore",
+    response_model=ContactResponse,
+    summary="Restore a deleted contact",
+    description="Restores a soft-deleted contact by setting is_deleted = False and clearing deleted_at.",
+)
+def restore_contact(
+    contact_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    contact = (
+        db.query(Contact)
+        .filter(Contact.id == contact_id, Contact.is_deleted == True)
+        .first()
+    )
+    if not contact:
+        raise HTTPException(status_code=404, detail="Deleted contact not found")
+
+    contact.is_deleted = False
+    contact.deleted_at = None
+    db.commit()
+    db.refresh(contact)
+
+    return contact
+
+@router.patch(
+    "/{contact_id}/active",
+    response_model=ContactResponse,
+    summary="Toggle active/inactive status",
+    description="Sets is_active to true or false for this contact.",
+)
+def update_contact_active_status(
+    contact_id: int,
+    status_update: ActiveStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    contact = db.query(Contact).filter(Contact.id == contact_id, Contact.is_deleted == False).first()
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    contact.is_active = status_update.is_active
+    contact.updated_by = current_user.id
+    db.commit()
+    db.refresh(contact)
+    return contact
 
 # ─── NEW: connected detail view ──────────────────────────────────────
 @router.get(

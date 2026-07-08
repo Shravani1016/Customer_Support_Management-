@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import api from '@/lib/api';
 import { Activity, ACTIVITY_ICONS, ACTIVITY_COLORS } from '@/types/activity';
 import toast from 'react-hot-toast';
+import { usePagination } from "@/lib/usePagination";
+import Pagination from "@/components/Pagination";
 
 const emptyForm = { type: 'note', note: '' };
 
@@ -118,6 +120,7 @@ export default function ActivitiesPage() {
 
         return matchesSearch && matchesType;
       })
+
       .sort((a, b) => {
         const first = new Date(a.created_at).getTime();
         const second = new Date(b.created_at).getTime();
@@ -127,6 +130,21 @@ export default function ActivitiesPage() {
           : first - second;
       });
   }, [activities, search, filterType, sortOrder]);
+
+  const {
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  paginatedItems: paginatedActivities,
+  resetPage,
+} = usePagination(filteredActivities, 10);
+
+useEffect(() => {
+  resetPage();
+}, [search, filterType, sortOrder, resetPage]);
 
   return (
     <div>
@@ -261,7 +279,7 @@ export default function ActivitiesPage() {
             <div className="absolute left-11 top-0 bottom-0 w-px bg-gray-100 dark:bg-gray-700/50" />
 
             <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
-              {filteredActivities.map((activity) => (
+              {paginatedActivities.map((activity) => (
                 <div
                   key={activity.id}
                   className="relative flex items-start gap-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:translate-x-0.5 transition-all rounded-lg -mx-2 px-2"
@@ -310,6 +328,14 @@ export default function ActivitiesPage() {
           </div>
         )}
       </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
     </div>
   );
 }

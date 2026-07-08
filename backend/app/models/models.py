@@ -64,7 +64,6 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
 # ─── Companies ───────────────────────────────────────
 class Company(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "companies"
-
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String)
@@ -72,50 +71,43 @@ class Company(Base, TimestampMixin, SoftDeleteMixin):
     website = Column(String)
     phone = Column(String)
     address = Column(Text)
+    is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
     contacts = relationship("Contact", back_populates="company")
-
 
 # ─── Contacts ────────────────────────────────────────
 class Contact(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "contacts"
-
     id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     email = Column(String, index=True)
     phone = Column(String)
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
     company = relationship("Company", back_populates="contacts")
     deals = relationship("Deal", back_populates="contact")
-
 
 # ─── Leads ───────────────────────────────────────────
 class Lead(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "leads"
-
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, index=True)
     phone = Column(String)
     status = Column(Enum(LeadStatusEnum), default=LeadStatusEnum.new)
     source = Column(String)
-    # NEW: captures which company this lead works at, so converting the
-    # lead can auto-create (or reuse) a matching Company record.
     company_name = Column(String, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
     owner = relationship("User", back_populates="leads", foreign_keys="Lead.owner_id")
 
 
 # ─── Deals ───────────────────────────────────────────
 class Deal(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "deals"
-
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     value = Column(Float, default=0.0)
@@ -123,11 +115,10 @@ class Deal(Base, TimestampMixin, SoftDeleteMixin):
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     expected_close_date = Column(DateTime(timezone=True), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
     contact = relationship("Contact", back_populates="deals")
     owner = relationship("User", back_populates="deals", foreign_keys="Deal.owner_id")
-
 
 # ─── Tasks ───────────────────────────────────────────
 class Task(Base, TimestampMixin, SoftDeleteMixin):

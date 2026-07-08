@@ -4,6 +4,8 @@ import api from '@/lib/api';
 import PhoneInput from '@/components/PhoneInput';
 import { Lead } from '@/types';
 import toast from 'react-hot-toast';
+import { usePagination } from '@/lib/usePagination';
+import Pagination from '@/components/Pagination';
 
 const statusColors: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
@@ -35,6 +37,7 @@ export default function LeadsModule() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const fetchLeads = async () => {
     try {
@@ -88,6 +91,16 @@ export default function LeadsModule() {
       toast.error(editingId ? 'Failed to update lead' : 'Failed to create lead');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleActive = async (lead: Lead) => {
+    try {
+      await api.patch(`/api/leads/${lead.id}/active`, { is_active: !lead.is_active });
+      toast.success(`Marked ${lead.is_active ? 'inactive' : 'active'}`);
+      fetchLeads();
+    } catch {
+      toast.error('Failed to update status');
     }
   };
 
@@ -145,28 +158,57 @@ export default function LeadsModule() {
     setSearchQuery('');
     setStatusFilter('all');
     setSourceFilter('all');
+    setActiveFilter('all');
   };
 
   const uniqueSources = Array.from(
     new Set(leads.map(lead => lead.source?.trim() || '').filter(Boolean))
   ).sort();
 
-  const filteredLeads = leads.filter(lead => {
-    const query = searchQuery.toLowerCase().trim();
+  const filteredLeads = leads.filter((lead) => {
+  const query = searchQuery.toLowerCase().trim();
 
-    const matchesSearch = !query ||
-      lead.name.toLowerCase().includes(query) ||
-      (lead.email && lead.email.toLowerCase().includes(query)) ||
-      (lead.phone && lead.phone.toLowerCase().includes(query)) ||
-      (lead.source && lead.source.toLowerCase().includes(query));
+  const matchesSearch =
+    !query ||
+    lead.name.toLowerCase().includes(query) ||
+    (lead.email && lead.email.toLowerCase().includes(query)) ||
+    (lead.phone && lead.phone.toLowerCase().includes(query)) ||
+    (lead.source && lead.source.toLowerCase().includes(query));
 
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
+  const matchesStatus =
+    statusFilter === 'all' || lead.status === statusFilter;
 
-    const leadSource = lead.source?.trim() || '';
-    const matchesSource = sourceFilter === 'all' || leadSource === sourceFilter;
+  const leadSource = lead.source?.trim() || '';
+  const matchesSource =
+    sourceFilter === 'all' || leadSource === sourceFilter;
 
-    return matchesSearch && matchesStatus && matchesSource;
-  });
+  const matchesActive =
+    activeFilter === 'all' ||
+    (activeFilter === 'active' && lead.is_active) ||
+    (activeFilter === 'inactive' && !lead.is_active);
+
+  return (
+    matchesSearch &&
+    matchesStatus &&
+    matchesSource &&
+    matchesActive
+  );
+});
+
+const {
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  paginatedItems: paginatedLeads,
+  resetPage,
+} = usePagination(filteredLeads, 10);
+
+useEffect(() => {
+  resetPage();
+}, [searchQuery, statusFilter, sourceFilter, activeFilter]);
 
   return (
     <div>
@@ -303,7 +345,20 @@ export default function LeadsModule() {
                 </select>
               </div>
 
-              {(searchQuery || statusFilter !== 'all' || sourceFilter !== 'all') && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Active:</span>
+                <select
+                  value={activeFilter}
+                  onChange={e => setActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  className="h-10 border dark:border-slate-600 rounded-lg px-3 text-sm text-black dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
+                >
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {(searchQuery || statusFilter !== 'all' || sourceFilter !== 'all' || activeFilter !== 'all') && (
                 <button
                   onClick={handleClearFilters}
                   className="h-10 text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors px-2 hover:underline cursor-pointer flex items-center"
@@ -312,14 +367,6 @@ export default function LeadsModule() {
                 </button>
               )}
             </div>
-          </div>
-
-          <div className="flex justify-between items-center px-1 mb-2">
-            <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">
-              {leads.length === 0
-                ? 'No leads available'
-                : `Showing ${filteredLeads.length} of ${leads.length} leads`}
-            </span>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700/50 shadow-md shadow-gray-200/50 dark:shadow-none overflow-hidden">
@@ -338,7 +385,7 @@ export default function LeadsModule() {
                 ) : filteredLeads.length === 0 ? (
                   <tr><td colSpan={7} className="text-center py-8 text-gray-400 dark:text-slate-500">No leads match your search criteria.</td></tr>
                 ) : (
-                  filteredLeads.map(lead => (
+                  paginatedLeads.map(lead => (
                     <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
                       <td className="px-4 py-3 font-medium text-gray-800 dark:text-slate-200">{lead.name}</td>
                       <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{lead.email || '—'}</td>
@@ -375,6 +422,16 @@ export default function LeadsModule() {
                           >
                             Delete
                           </button>
+                          <button
+                            onClick={() => handleToggleActive(lead)}
+                            className={`text-xs px-2 py-1 rounded-md transition whitespace-nowrap ${
+                              lead.is_active
+                                ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-500/10'
+                                : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
+                          >
+                            {lead.is_active ? '● Active' : '○ Inactive'}
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -383,6 +440,14 @@ export default function LeadsModule() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </>
       )}
     </div>

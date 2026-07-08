@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
+import { usePagination } from "@/lib/usePagination";
+import Pagination from "@/components/Pagination";
 
 type Employee = {
   id: number;
@@ -19,9 +21,6 @@ export default function EmployeesModule() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");   
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
 
   const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(null);
 
@@ -54,10 +53,6 @@ export default function EmployeesModule() {
   useEffect(() => {
     fetchEmployees();
   }, []);
-
-  useEffect(() => {
-  setCurrentPage(1);
-}, [search, statusFilter]);
 
   const handleCreate = async () => {
     if (!form.full_name || !form.email || !form.password) {
@@ -175,12 +170,22 @@ export default function EmployeesModule() {
     (statusFilter === "inactive" && !employee.is_active);
 
   return matchesSearch && matchesStatus;
-   }); 
+   });   
 
-const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
-const startIndex = (currentPage - 1) * itemsPerPage;
-const endIndex = startIndex + itemsPerPage;
-const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);   
+   const {
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  paginatedItems: paginatedEmployees,
+  resetPage,
+} = usePagination(filteredEmployees, 5);
+
+useEffect(() => {
+  resetPage();
+}, [search, statusFilter, resetPage]);
 
   return (
     <div className="space-y-6 max-w-full overflow-hidden">
@@ -363,39 +368,23 @@ const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
         {filteredEmployees.length > 0 && (
   <div className="flex items-center justify-between px-4 py-4 border-t bg-gray-50 dark:bg-slate-800">
     <p className="text-sm text-gray-600 dark:text-gray-300">
-      Showing {startIndex + 1} to{" "}
-      {Math.min(endIndex, filteredEmployees.length)} of{" "}
-      {filteredEmployees.length} employees
-    </p>
-
-    <div className="flex gap-2">
-      <button
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-        className="px-3 py-1 border rounded disabled:opacity-50"
-      >
-        Previous
-      </button>
-
-      <span className="px-3 py-1 border rounded">
-        Page {currentPage} of {totalPages}
-      </span>
-
-      <button
-        onClick={() =>
-          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-        }
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 border rounded disabled:opacity-50"
-      >
-        Next
-      </button>
-    </div>
+  Showing {(page - 1) * pageSize + 1} to{" "}
+  {Math.min(page * pageSize, totalItems)} of {totalItems} employees
+</p>
   </div>
 )}
       </div>
 
-      
+      {filteredEmployees.length > 0 && (
+  <Pagination
+    page={page}
+    totalPages={totalPages}
+    pageSize={pageSize}
+    totalItems={totalItems}
+    onPageChange={setPage}
+    onPageSizeChange={setPageSize}
+  />
+)}
 
       {showResetModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">

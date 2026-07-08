@@ -9,7 +9,7 @@ import io
 from app.database import get_db
 from app.models.models import Company, Contact, Deal, Task, Activity
 from app.schemas.company import (
-    CompanyCreate, CompanyUpdate, CompanyResponse, CompanyDetailResponse,
+    CompanyCreate, CompanyUpdate, CompanyResponse, CompanyDetailResponse, ActiveStatusUpdate,
 )
 from app.dependencies import get_current_user
 from app.models.models import User
@@ -76,6 +76,71 @@ def export_companies_csv(db: Session = Depends(get_db), current_user: User = Dep
         headers={"Content-Disposition": "attachment; filename=companies.csv"},
     )
 
+
+@router.get(
+    "/trash",
+    response_model=List[CompanyResponse],
+    summary="List deleted companies",
+    description="Returns all soft-deleted companies, most recently deleted first.",
+)
+def get_deleted_companies(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Company)
+        .filter(Company.is_deleted == True)
+        .order_by(Company.deleted_at.desc())
+        .all()
+    )
+
+
+@router.post(
+    "/{company_id}/restore",
+    response_model=CompanyResponse,
+    summary="Restore a deleted company",
+    description="Restores a soft-deleted company by setting is_deleted = False and clearing deleted_at.",
+)
+def restore_company(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    company = (
+        db.query(Company)
+        .filter(Company.id == company_id, Company.is_deleted == True)
+        .first()
+    )
+    if not company:
+        raise HTTPException(status_code=404, detail="Deleted company not found")
+
+    company.is_deleted = False
+    company.deleted_at = None
+    db.commit()
+    db.refresh(company)
+
+    return company
+
+@router.patch(
+    "/{company_id}/active",
+    response_model=CompanyResponse,
+    summary="Toggle active/inactive status",
+    description="Sets is_active to true or false for this company.",
+)
+def update_company_active_status(
+    company_id: int,
+    status_update: ActiveStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    company = db.query(Company).filter(Company.id == company_id, Company.is_deleted == False).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    company.is_active = status_update.is_active
+    company.updated_by = current_user.id
+    db.commit()
+    db.refresh(company)
+    return company
 
 # ─── NEW: connected detail view ──────────────────────────────────────
 # Kept as a separate route (/detail suffix) rather than changing the

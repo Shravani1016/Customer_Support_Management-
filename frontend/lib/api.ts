@@ -55,12 +55,20 @@ if (!refreshToken) {
         });
 
         localStorage.setItem('access_token', res.data.access_token);
-        localStorage.setItem('refresh_token', res.data.refresh_token);
+localStorage.setItem('refresh_token', res.data.refresh_token);
 
-        refreshQueue.forEach((cb) => cb());
-        refreshQueue = [];
+// Update default Authorization header
+api.defaults.headers.common['Authorization'] =
+  `Bearer ${res.data.access_token}`;
 
-        return api(originalRequest);
+// Update the current request header
+originalRequest.headers.Authorization =
+  `Bearer ${res.data.access_token}`;
+
+refreshQueue.forEach((cb) => cb());
+refreshQueue = [];
+
+return api(originalRequest);
       } catch (refreshError) {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");

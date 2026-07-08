@@ -11,7 +11,7 @@ from app.models.models import (
     Lead, User, Contact, Company, Deal, Activity,
     LeadStatusEnum, DealStageEnum, ActivityTypeEnum,
 )
-from app.schemas.lead import LeadCreate, LeadUpdate, LeadResponse, LeadConvertResponse
+from app.schemas.lead import LeadCreate, LeadUpdate, LeadResponse, LeadConvertResponse, ActiveStatusUpdate
 from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/leads", tags=["Leads"])
@@ -77,6 +77,71 @@ def export_leads_csv(db: Session = Depends(get_db), current_user: User = Depends
     )
 
 
+@router.get(
+    "/trash",
+    response_model=List[LeadResponse],
+    summary="List deleted leads",
+    description="Returns all soft-deleted leads, most recently deleted first.",
+)
+def get_deleted_leads(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Lead)
+        .filter(Lead.is_deleted == True)
+        .order_by(Lead.deleted_at.desc())
+        .all()
+    )
+
+
+@router.post(
+    "/{lead_id}/restore",
+    response_model=LeadResponse,
+    summary="Restore a deleted lead",
+    description="Restores a soft-deleted lead by setting is_deleted = False and clearing deleted_at.",
+)
+def restore_lead(
+    lead_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    lead = (
+        db.query(Lead)
+        .filter(Lead.id == lead_id, Lead.is_deleted == True)
+        .first()
+    )
+    if not lead:
+        raise HTTPException(status_code=404, detail="Deleted lead not found")
+
+    lead.is_deleted = False
+    lead.deleted_at = None
+    db.commit()
+    db.refresh(lead)
+
+    return lead
+
+@router.patch(
+    "/{lead_id}/active",
+    response_model=LeadResponse,
+    summary="Toggle active/inactive status",
+    description="Sets is_active to true or false for this lead.",
+)
+def update_lead_active_status(
+    lead_id: int,
+    status_update: ActiveStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    lead = db.query(Lead).filter(Lead.id == lead_id, Lead.is_deleted == False).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    lead.is_active = status_update.is_active
+    lead.updated_by = current_user.id
+    db.commit()
+    db.refresh(lead)
+    return lead
+
 # ─── NEW: the auto-conversion workflow ───────────────────────────────
 # Lead (qualified) → Contact (create or reuse by email) →
 # Company (create or reuse by name, only if lead had one) →
@@ -105,7 +170,7 @@ def convert_lead(lead_id: int, db: Session = Depends(get_db), current_user: User
             detail="Only qualified leads can be converted. Move this lead to 'qualified' first.",
         )
 
-        # ── 1. Company: find by name, or create if the lead specified one ──
+    # ── 1. Company: find by name, or create if the lead specified one ──
     company = None
     company_created = False
     if lead.company_name and lead.company_name.strip():
@@ -124,7 +189,6 @@ def convert_lead(lead_id: int, db: Session = Depends(get_db), current_user: User
             db.add(company)
             db.flush()  # get company.id without a full commit yet
             company_created = True
-
 
     # ── 2. Contact: find by email, or create ──
     contact = None
@@ -242,3 +306,4 @@ def delete_lead(lead_id: int, db: Session = Depends(get_db), current_user: User 
     #lead.updated_by = current_user.id
     db.commit()
     return None
+
