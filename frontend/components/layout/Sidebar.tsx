@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
+import { Role } from '@/lib/roleGuard';
 import {
   LayoutDashboard, Target, Users, Building2,
   DollarSign, CheckSquare, Activity, BarChart3, LogOut, Calendar,
@@ -21,7 +22,7 @@ const nav = [
 ];
 
 interface SidebarProps {
-  role: 'employee' | 'admin' | 'super-admin';
+  role: Role;
 }
 
 export default function Sidebar({ role }: SidebarProps) {
@@ -38,6 +39,7 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Contacts", href: "/dashboard/contacts" },
         { label: "Companies", href: "/dashboard/companies" },
         { label: "Deals", href: "/dashboard/deals" },
+        { label: "My Profile", href: "/dashboard/profile" }
       ],
     },
     {
@@ -54,6 +56,12 @@ export default function Sidebar({ role }: SidebarProps) {
   ];
 
   const adminMenu = [
+     {
+      title: "Team",
+      items: [{ label: "Manage Employees", href: "/admin/employees" },
+      { label: "My Profile", href: "/admin/profile" }  
+      ],
+    },
     {
       title: "CRM",
       items: [
@@ -62,11 +70,8 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Contacts", href: "/admin/contacts" },
         { label: "Companies", href: "/admin/companies" },
         { label: "Deals", href: "/admin/deals" },
+        { label: "My Profile", href: "/admin/profile" }
       ],
-    },
-    {
-      title: "Team",
-      items: [{ label: "Manage Employees", href: "/admin/employees" }],
     },
     {
       title: "Activities",
@@ -79,6 +84,7 @@ export default function Sidebar({ role }: SidebarProps) {
       title: "Reports",
       items: [{ label: "Reports", href: "/admin/reports" }],
     },
+
   ];
 
   const superAdminMenu = [
@@ -88,6 +94,8 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Dashboard", href: "/super-admin/dashboard" },
         { label: "Manage Admins", href: "/super-admin/admins" },
         { label: "Manage Employees", href: "/super-admin/employees" },
+        { label: "Audit Logs", href: "/super-admin/audit-logs" }, 
+        { label: "My Profile", href: "/super-admin/profile" }
       ],
     },
     {
@@ -97,6 +105,7 @@ export default function Sidebar({ role }: SidebarProps) {
         { label: "Contacts", href: "/super-admin/contacts" },
         { label: "Companies", href: "/super-admin/companies" },
         { label: "Deals", href: "/super-admin/deals" },
+        { label: "Audit Logs", href: "/super-admin/audit-logs" }, 
       ],
     },
     {
@@ -113,7 +122,7 @@ export default function Sidebar({ role }: SidebarProps) {
   ];
 
   const menu =
-    role === "employee"
+    role === "sales_rep"
       ? employeeMenu
       : role === "admin"
       ? adminMenu
@@ -130,7 +139,7 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* Brand */}
       <div className="border-b border-slate-100 dark:border-slate-700 px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
             <span className="text-sm font-bold">CF</span>
           </div>
           <div>
@@ -169,7 +178,7 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* User + Theme Toggle */}
       <div className="border-t border-slate-100 dark:border-slate-700 p-3">
         <div className="flex items-center gap-2 rounded-lg p-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white flex-shrink-0">
             {user?.full_name?.[0]?.toUpperCase() ?? 'U'}
           </div>
           <div className="flex-1 min-w-0">

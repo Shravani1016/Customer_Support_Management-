@@ -21,6 +21,7 @@ class LeadStatusEnum(str, enum.Enum):
     contacted = "contacted"
     qualified = "qualified"
     converted = "converted"
+    lost = "lost"
 
 class DealStageEnum(str, enum.Enum):
     prospecting = "prospecting"
@@ -156,14 +157,16 @@ class Activity(Base, SoftDeleteMixin):
     id = Column(Integer, primary_key=True, index=True)
     type = Column(Enum(ActivityTypeEnum), nullable=False)
     note = Column(Text)
+
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     # Polymorphic links
     lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
     deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    created_by_id = Column(Integer, ForeignKey("users.id"))
+
     created_by = relationship(
         "User",
         foreign_keys=[created_by_id]
@@ -179,12 +182,23 @@ class PasswordResetOTP(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # ─── Files ───────────────────────────────────────────
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    action = Column(String, nullable=False)
+    target_type = Column(String, nullable=False)
+    target_id = Column(Integer, nullable=True)
+    performed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ─── Files ───────────────────────────────────────────
 class File(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "files"
 
     id = Column(Integer, primary_key=True, index=True)
-
     filename = Column(String, nullable=False)
     filepath = Column(String, nullable=False)
 
@@ -193,7 +207,6 @@ class File(Base, TimestampMixin, SoftDeleteMixin):
     deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
 
     uploaded_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company")
