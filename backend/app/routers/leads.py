@@ -36,7 +36,7 @@ def get_leads(db: Session = Depends(get_db), current_user: User = Depends(get_cu
 )
 def create_lead(lead: LeadCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_lead = Lead(**lead.dict(), owner_id=current_user.id)
-    db_lead.created_by = current_user.id
+    #db_lead.created_by = current_user.id
     db.add(db_lead)
     db.commit()
     db.refresh(db_lead)
@@ -120,7 +120,7 @@ def convert_lead(lead_id: int, db: Session = Depends(get_db), current_user: User
                 company.email = lead.email
             if lead.phone:
                 company.phone = lead.phone
-            company.created_by = current_user.id
+            #company.created_by = current_user.id
             db.add(company)
             db.flush()  # get company.id without a full commit yet
             company_created = True
@@ -148,14 +148,14 @@ def convert_lead(lead_id: int, db: Session = Depends(get_db), current_user: User
             phone=lead.phone,
             company_id=company.id if company else None,
         )
-        contact.created_by = current_user.id
+        #contact.created_by = current_user.id
         db.add(contact)
         db.flush()
         contact_created = True
     elif company and not contact.company_id:
         # Existing contact had no company yet — attach the one we just resolved.
         contact.company_id = company.id
-        contact.updated_by = current_user.id
+        #contact.updated_by = current_user.id
 
     # ── 3. Deal: always created fresh for this conversion ──
     deal = Deal(
@@ -239,6 +239,6 @@ def delete_lead(lead_id: int, db: Session = Depends(get_db), current_user: User 
         raise HTTPException(status_code=404, detail="Lead not found")
     lead.is_deleted = True
     lead.deleted_at = func.now()
-    lead.updated_by = current_user.id
+    #lead.updated_by = current_user.id
     db.commit()
     return None
