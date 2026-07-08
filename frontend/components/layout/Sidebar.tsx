@@ -139,7 +139,7 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* Brand */}
       <div className="border-b border-slate-100 dark:border-slate-700 px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
             <span className="text-sm font-bold">CF</span>
           </div>
           <div>
@@ -178,7 +178,7 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* User + Theme Toggle */}
       <div className="border-t border-slate-100 dark:border-slate-700 p-3">
         <div className="flex items-center gap-2 rounded-lg p-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white flex-shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white shrink-0">
             {user?.full_name?.[0]?.toUpperCase() ?? 'U'}
           </div>
           <div className="flex-1 min-w-0">
