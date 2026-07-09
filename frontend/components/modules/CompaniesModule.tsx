@@ -166,7 +166,7 @@ useEffect(() => {
         <div className="flex gap-2">
           <button
             onClick={() => (showForm ? setShowForm(false) : openAddForm())}
-            className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm transition"
+            className="bg-linear-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:opacity-90 shadow-lg shadow-indigo-500/20 text-sm transition"
           >
             + Add Company
           </button>
@@ -223,7 +223,7 @@ useEffect(() => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
+              className="bg-linear-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition"
             >
               {saving ? 'Saving...' : editingId ? 'Update' : 'Save'}
             </button>

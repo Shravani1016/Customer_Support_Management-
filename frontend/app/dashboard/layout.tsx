@@ -6,7 +6,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RoleLayout role="sales_rep">
+    <RoleLayout role={["sales_rep", "manager"]}>
       {children}
     </RoleLayout>
   );

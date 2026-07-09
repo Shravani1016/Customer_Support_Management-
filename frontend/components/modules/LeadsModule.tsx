@@ -217,7 +217,7 @@ useEffect(() => {
         <div className="flex gap-2">
           <button
             onClick={() => (showForm ? setShowForm(false) : openAddForm())}
-            className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 transition"
+            className="bg-linear-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 transition"
           >
             + Add Lead
           </button>
@@ -276,7 +276,7 @@ useEffect(() => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 transition disabled:opacity-50"
+              className="bg-linear-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 transition disabled:opacity-50"
             >
               {saving ? 'Saving...' : editingId ? 'Update' : 'Save'}
             </button>

@@ -1,4 +1,4 @@
-export type Role = "sales_rep" | "admin" | "super_admin";
+export type Role = "sales_rep" | "admin" | "super_admin" | "manager";
 
 export function getStoredUser() {
   if (typeof window === 'undefined') return null;

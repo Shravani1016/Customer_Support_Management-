@@ -153,7 +153,7 @@ export default function AddDealModal({ onClose, onSaved, deal }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50 transition shadow-lg shadow-indigo-500/30"
+              className="flex-1 bg-linear-to-r from-indigo-600 to-violet-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50 transition shadow-lg shadow-indigo-500/30"
             >
               {loading ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Deal')}
             </button>

@@ -6,12 +6,13 @@ import Sidebar from "./Sidebar";
 import { getUserRole, Role } from "@/lib/roleGuard";
 
 interface Props {
-  role: Role;
+  role: Role | Role[];
   children: React.ReactNode;
 }
 
 const ROLE_HOME: Record<Role, string> = {
   sales_rep: "/dashboard",
+  manager: "/dashboard",
   admin: "/admin/dashboard",
   super_admin: "/super-admin/dashboard",
 };
@@ -19,16 +20,20 @@ const ROLE_HOME: Record<Role, string> = {
 export default function RoleLayout({ role, children }: Props) {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  const [userRole, setUserRole] = useState<Role | null>(null);
 
   useEffect(() => {
     const actualRole = getUserRole();
+    setUserRole(actualRole);
 
     if (!actualRole) {
       router.replace("/login");
       return;
     }
 
-    if (actualRole !== role) {
+    const allowed = Array.isArray(role) ? role.includes(actualRole) : actualRole === role;
+
+    if (!allowed) {
       router.replace(ROLE_HOME[actualRole] || "/login");
       return;
     }
@@ -46,7 +51,7 @@ export default function RoleLayout({ role, children }: Props) {
 
   return (
     <div className="flex min-h-screen bg-slate-950">
-      <Sidebar role={role} />
+      <Sidebar role={userRole || (Array.isArray(role) ? role[0] : role)} />
       <main className="flex-1 p-8 overflow-auto">{children}</main>
     </div>
   );

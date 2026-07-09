@@ -125,7 +125,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -136,7 +136,7 @@ export default function DashboardPage() {
             </p>
             <h1 className="text-3xl font-bold text-slate-900 mt-1">
               Welcome back,{' '}
-              <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
                 {user?.full_name || 'Admin User'}
               </span>{' '}
               👋
@@ -146,7 +146,7 @@ export default function DashboardPage() {
 
           <Link
             href="/dashboard/deals"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/30 transition"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/30 transition"
           >
             <Plus className="w-4 h-4" />
             New Deal
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                 className={`group relative bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all ring-1 ${s.ring}`}
               >
                 <div className="flex items-start justify-between">
-                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${s.accent} flex items-center justify-center shadow-md`}>
+                  <div className={`w-11 h-11 rounded-xl bg-linear-to-br ${s.accent} flex items-center justify-center shadow-md`}>
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                     key={tip.title}
                     className="flex gap-3 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 transition-all bg-white dark:bg-slate-800"
                   >
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${tip.color}`}>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tip.color}`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
@@ -253,7 +253,7 @@ export default function DashboardPage() {
               })}
             </div>
 
-            <div className="mt-5 p-4 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white flex items-center justify-between">
+            <div className="mt-5 p-4 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 text-white flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold">Ready to grow your pipeline?</p>
                 <p className="text-xs text-indigo-100 mt-0.5">Add a new deal and start tracking today.</p>
